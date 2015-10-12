@@ -1,4 +1,4 @@
-file(GLOB src "*.cc")
+file(GLOB src "*.cc" "internal/*.cc")
 add_library(bitplanes_core ${LIBRARY_TYPE} ${src})
 set_target_properties(bitplanes_core PROPERTIES LINKER_LANGUAGE CXX)
 

@@ -21,6 +21,8 @@
 #include <Eigen/StdVector>
 #include <Eigen/Core>
 
+#include <iosfwd>
+#include <string>
 #include <vector>
 
 namespace bp {
@@ -58,6 +60,64 @@ struct EigenStdVector
   typedef Eigen::aligned_allocator<M> allocator;
   typedef std::vector<M, allocator>   type;
 }; // EigenStdVector
+
+
+enum class OptimizerStatus
+{
+  NotStarted,             //< optimization has not started
+  MaxIterations,          //< max iterations reached
+  FirstOrderOptimality,   //< norm of the gradient is small
+  SmallRelativeReduction, //< relative reduction in objective is small
+  SmallAbsError,          //< absolute error value is small
+  SmallParameterUpdate,   //< current delta parameters is small
+  SmallAbsParameters,     //< absolute parameter step is small
+}; // OptimizerStatus
+
+/**
+ * converts OptimizerStatus enum to a string
+ */
+std::string ToString(OptimizerStatus);
+
+/**
+ * The trackers results, estimated motion model and other info
+ */
+struct Result
+{
+  inline Result() {}
+
+  /** status of the optimizer */
+  OptimizerStatus status = OptimizerStatus::NotStarted;
+
+  /** number of iterations */
+  int num_iterations = -1;
+
+  /** final sum of squared errors */
+  float final_ssd_error = -1.0f;
+
+  /** first order optimiality, Inf norm of the gradient */
+  float first_order_optimality = -1.0f;
+
+  /** time in milliseconds if timing is enabled */
+  float time_ms = -1.0;
+
+  /** estimated transform */
+  Matrix33f T = Matrix33f::Identity();
+
+  friend std::ostream& operator<<(std::ostream&, const Result&);
+}; // Result
+
+
+/**
+ * Type of the motion to estimate
+ */
+enum class MotionType
+{
+  Translation,
+  Affine,
+  Homography
+}; // MotionType
+
+std::string ToString(MotionType);
 
 }; // bp
 

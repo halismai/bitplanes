@@ -4,7 +4,7 @@ set(SSE_FLAGS "-march=native -mtune=native")
 # there must be a better way of doing this, RTFM
 macro(SetSSEDefs InstName)
   if(${${InstName}_FOUND})
-    set(DIVO_HAVE_${InstName} 1)
+    set(BITPLANES_HAVE_${InstName} 1)
     set(SSE_FLAGS "${SSE_FLAGS} ${${InstName}_FLAGS}")
   else()
     set(DIVO_HAVE_${InstName} 0)

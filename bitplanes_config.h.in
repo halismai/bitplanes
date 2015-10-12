@@ -33,6 +33,15 @@
 #cmakedefine BITPLANES_WITH_TBB
 #cmakedefine BITPLANES_WITH_BOOST
 
+#cmakedefine BITPLANES_HAVE_SSE2
+#cmakedefine BITPLANES_HAVE_SSE3
+#cmakedefine BITPLANES_HAVE_SSSE3
+#cmakedefine BITPLANES_HAVE_SSE4_1
+#cmakedefine BITPLANES_HAVE_SSE4_2
+#cmakedefine BITPLANES_HAVE_AVX
+#cmakedefine BITPLANES_HAVE_AVX2
+#cmakedefine BITPLANES_HAVE_POPCNT
+
 #include <bitplanes/core/debug.h>
 
 #endif // BITPLANES_CONFIG_H

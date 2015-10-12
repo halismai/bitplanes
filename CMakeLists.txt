@@ -12,6 +12,12 @@ set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory")
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Config" FORCE)
 
 project(bitplanes CXX)
+
+include(cmake/CheckC++11.cmake)
+CheckCpp11()
+
+include(cmake/ConfigureSSE.cmake)
+
 set(BITPLANES_VERSION_MAJOR \"0\")
 set(BITPLANES_VERSION_MINOR \"2\")
 set(BITPLANES_VERSION_PATCH \"0\")
