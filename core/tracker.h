@@ -25,7 +25,6 @@
 
 namespace bp {
 
-
 class InverseCompositionalImpl;
 
 class Tracker

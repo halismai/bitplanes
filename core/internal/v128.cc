@@ -15,39 +15,21 @@
   along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef BITPLANES_CORE_INTERNAL_CENSUS_H
-#define BITPLANES_CORE_INTERNAL_CENSUS_H
-
-#include "bitplanes/core/internal/cvfwd.h"
+#include "bitplanes/core/internal/v128.h"
+#include <iostream>
 
 namespace bp {
 
-/**
- * Not optimized
- */
-void CensusTransform(const cv::Mat&, cv::Mat&);
+#if defined(BITPLANES_HAVE_SSE2)
+  std::ostream& operator<<(std::ostream& os, const v128& v)
+  {
+    ALIGNED(16) uint8_t buf[16];
+    _mm_store_si128((__m128i*) buf, v);
 
+    for(int i = 0; i < 16; ++i)
+      os << static_cast<int>( buf[i] ) << " ";
+    return os;
+  }
+#endif
 
-/**
- * most generic form of census, patch radius and sampling locations are
- * determined by x_off and y_off
- */
-void CensusTransform(const cv::Mat& src, cv::Mat& dst,
-                     const int* x_off, int x_off_len,
-                     const int* y_off, int y_off_len);
-
-
-namespace simd {
-/**
- */
-void CensusTransform(const cv::Mat&, cv::Mat&);
-
-/**
- */
-void CensusTransformChannel(const cv::Mat&, int addr, cv::Mat&, int off);
-
-}; // simd
-
-}; // bp
-
-#endif // BITPLANES_CORE_INTERNAL_CENSUS_H
+}
