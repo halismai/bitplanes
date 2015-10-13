@@ -35,12 +35,12 @@ CheckCpp11()
 
 include(cmake/ConfigureSSE.cmake)
 
-set(BITPLANES_VERSION_MAJOR \"0\")
-set(BITPLANES_VERSION_MINOR \"2\")
-set(BITPLANES_VERSION_PATCH \"0\")
+set(BITPLANES_VERSION_MAJOR "0")
+set(BITPLANES_VERSION_MINOR "2")
+set(BITPLANES_VERSION_PATCH "0")
 
 execute_process(COMMAND date OUTPUT_VARIABLE build_date OUTPUT_STRIP_TRAILING_WHITESPACE)
-set(BITPLANES_BUILD_DATE \"${build_date}\")
+set(BITPLANES_BUILD_DATE "${build_date}")
 
 configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
   "${PROJECT_SOURCE_DIR}/core/config.h")

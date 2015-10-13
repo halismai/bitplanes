@@ -15,13 +15,17 @@
   along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "bitplanes/core/algorithm_parameters.h"
+#include <bitplanes/core/algorithm_parameters.h>
+#include <bitplanes/core/config.h>
+
 #include <iostream>
 
 using namespace bp;
 
 int main()
 {
+  Info("\n%s\n", BITPLANES_BUILD_STRING);
+
   auto params = AlgorithmParameters::FromConfigFile("../config/test.cfg");
   std::cout << params << std::endl;
 

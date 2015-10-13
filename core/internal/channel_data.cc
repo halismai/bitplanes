@@ -21,6 +21,7 @@
 #include "bitplanes/core/homography.h"
 #include "bitplanes/core/translation.h"
 #include "bitplanes/core/affine.h"
+#include "bitplanes/utils/error.h"
 
 #include <opencv2/core/core.hpp>
 
@@ -211,7 +212,7 @@ void ComputeResiduals(const uint8_t* ptr, const std::vector<size_t>& indices,
 void ChannelData::computeResiduals(const cv::Mat& Cw, Eigen::VectorXf& E) const
 {
   assert( Cw.type() == cv::DataType<uint8_t>::type ||
-         Cw.type() == cv::DataType<float>::type );
+          Cw.type() == cv::DataType<float>::type );
 
   switch( Cw.type() )
   {
@@ -224,7 +225,7 @@ void ChannelData::computeResiduals(const cv::Mat& Cw, Eigen::VectorXf& E) const
       break;
 
     default:
-      ; // nothing here
+      THROW_ERROR("Unsuppored image type");
   }
 }
 
