@@ -15,40 +15,39 @@
   along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <unsupported/Eigen/MatrixFunctions> // for exp and log
-#include <Eigen/Cholesky>
+#ifndef BITPLANES_UTILS_TIMER_H
+#define BITPLANES_UTILS_TIMER_H
 
-#include "bitplanes/core/translation.h"
+#include <chrono>
 
 namespace bp {
 
-
-auto Translation::Scale(const Transform& T, float scale) -> Transform
+class Timer
 {
-  return T * scale;
+  typedef std::chrono::milliseconds Milliseconds;
+
+ public:
+  inline Timer() { start(); }
+
+  void start();
+  Milliseconds stop();
+  Milliseconds elapsed();
+
+ protected:
+  std::chrono::high_resolution_clock::time_point _start_time;
+}; // Timer
+
+
+template <class Func, class ...Args> static inline
+double TimeCode(int N_rep, Func&& f, Args... args)
+{
+  Timer timer;
+  for(int i = 0; i < N_rep; ++i)
+    f(args...);
+  auto t = timer.stop();
+  return t.count() / (double) N_rep;
 }
 
-auto Translation::MatrixToParams(const Transform& H) -> ParameterVector
-{
-  ParameterVector p(H(0,2), H(1,2));
-  return p;
-}
+}; // bp
 
-auto Translation::ParamsToMatrix(const ParameterVector& p) -> Transform
-{
-  Transform T;
-  T <<
-      0.0, 0.0, p[0],
-      0.0, 0.0, p[1],
-      0.0, 0.0, 1.0;
-  return T;
-}
-
-auto Translation::Solve(const Hessian& A, const Gradient& b) -> ParameterVector
-{
-  return -A.ldlt().solve(b);
-}
-
-} // bp
-
-
+#endif // BITPLANES_UTILS_TIMER_H

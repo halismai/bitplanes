@@ -51,12 +51,18 @@ auto Affine::Solve(const Hessian& A, const Gradient& b) -> ParameterVector
 }
 
 auto Affine::ComputeJacobian(float x, float y, float Ix, float Iy,
-                                 float s, float c1, float c2) -> Jacobian
+                             float s, float c1, float c2) -> Jacobian
 {
   Jacobian J;
   // TODO
 
   return J;
+}
+
+void Affine::ComputeJacobian(Eigen::Ref<Jacobian> J, float x, float y, float Ix, float Iy,
+                             float s, float c1, float c2)
+{
+  // TODO
 }
 
 } // bp

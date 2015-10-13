@@ -58,8 +58,20 @@ class Translation : public MotionModel<Translation>
 
   /**
    */
-  static Jacobian ComputeJacobian(float x, float y, float Ix, float Iy,
-                                  float s = 1.0f, float c1=0.0f, float c2=0.0f);
+  static inline Jacobian ComputeJacobian(float /*x*/, float /*y*/, float Ix, float Iy,
+                                         float = 1.0f, float = 0.0f, float = 0.0f)
+  {
+    return Jacobian(Ix, Iy);
+  }
+
+  static inline void ComputeJacobian(Eigen::Ref<Jacobian> J, float /*x*/, float /*y*/,
+                              float Ix, float Iy, float = 1.0f, float = 0.0f,
+                              float = 0.0f)
+  {
+    J[0] = Ix;
+    J[1] = Iy;
+  }
+
 }; // Translation
 
 }; // bp

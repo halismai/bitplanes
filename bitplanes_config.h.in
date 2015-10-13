@@ -32,6 +32,7 @@
 #cmakedefine BITPLANES_WITH_PROFILER
 #cmakedefine BITPLANES_WITH_TBB
 #cmakedefine BITPLANES_WITH_BOOST
+#cmakedefine BITPLANES_WITH_TIMING
 
 #cmakedefine BITPLANES_HAVE_SSE2
 #cmakedefine BITPLANES_HAVE_SSE3

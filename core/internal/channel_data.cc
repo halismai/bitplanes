@@ -53,9 +53,11 @@ void GetValidData(const cv::Mat& image, const PointVector& points,
   pixels.clear();
   inds.clear();
 
-  gradients.reserve(points.size());
-  pixels.reserve(points.size());
-  inds.reserve(points.size());
+  const auto N = points.size();
+  gradients.resize(N);
+  pixels.resize(N);
+
+  std::vector<uint8_t> tmp_inds(N, 0);
 
   int y_off = points[0].y(),
       x_off = points[0].x();
@@ -69,7 +71,8 @@ void GetValidData(const cv::Mat& image, const PointVector& points,
 #endif
 
 
-  for(size_t i = 0; i < points.size(); ++i)
+  size_t i = 0;
+  for(i = 0; i < N; ++i)
   {
     int y = static_cast<int>( points[i].y() ) - y_off,
         x = static_cast<int>( points[i].x() ) - x_off;
@@ -89,13 +92,22 @@ void GetValidData(const cv::Mat& image, const PointVector& points,
       Eigen::Matrix<float,1,2> G(Ix, Iy);
       if( true || G.array().abs().sum() > -1.0f )
       {
-        // will use everything for now
-        inds.push_back(i);
-        pixels.push_back(I_ptr[ii]);
-        gradients.push_back(G * 0.5f);
+        tmp_inds[i] = 1;
+        pixels[i] = I_ptr[ii];
+        gradients[i] = 0.5f * G;
       }
     }
   }
+
+  if(i < N) {
+    pixels.erase(pixels.begin(), pixels.begin() + i);
+    gradients.erase(gradients.begin(), gradients.begin() + i);
+  }
+
+  inds.clear();
+  inds.resize(N);
+  for(size_t j = 0, jj = 0; j < tmp_inds.size(); ++j)
+    if(tmp_inds[j]) inds[jj++] = j;
 }
 
 
@@ -119,7 +131,9 @@ ComputeJacobian(const ImageGradientVector& gradients, const PointVector& points,
     float x = points[ii].x(),
           y = points[ii].y();
 
-    tmp_jacobian.col(i) = Motion::ComputeJacobian(x, y, Ix, Iy, s, c1, c2);
+    //tmp_jacobian.col(i) = Motion::ComputeJacobian(x, y, Ix, Iy, s, c1, c2);
+
+    Motion::ComputeJacobian(tmp_jacobian.col(i), x, y, Ix, Iy, s, c1, c2);
   }
 
   jacobians = tmp_jacobian.transpose();

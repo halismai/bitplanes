@@ -63,6 +63,7 @@ struct EigenStdVector
 
 
 typedef typename EigenStdVector<Vector3f>::type PointVector;
+typedef typename EigenStdVector<Vector_<float>>::type ResidualsVector;
 
 enum class OptimizerStatus
 {
@@ -85,7 +86,8 @@ std::string ToString(OptimizerStatus);
  */
 struct Result
 {
-  inline Result() {}
+  inline Result(const Matrix33f& tform = Matrix33f::Identity())
+      : T(tform) {}
 
   /** status of the optimizer */
   OptimizerStatus status = OptimizerStatus::NotStarted;

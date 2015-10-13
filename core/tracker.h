@@ -35,7 +35,7 @@ class Tracker
  public:
   Tracker(MotionType, AlgorithmParameters p = AlgorithmParameters());
 
-  inline ~Tracker() {}
+  ~Tracker();
 
   /**
    * set the template at the bounding box
@@ -62,7 +62,6 @@ class Tracker
 
  protected:
   bp::UniquePointer<Impl> _impl;
-
 
   template<class> friend class InverseCompositionalImpl;
 }; // Tracker

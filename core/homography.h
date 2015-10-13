@@ -58,6 +58,13 @@ class Homography : public MotionModel<Homography>
 
   static Jacobian ComputeJacobian(float x, float y, float Ix, float Iy,
                                   float s = 1.0f, float c1 = 0.0f, float c2 = 0.0f);
+
+  static inline void ComputeJacobian(Eigen::Ref<Jacobian> J, float x, float y,
+                                     float Ix, float Iy, float s = 1.0f,
+                                     float c1 = 0.0f, float c2 = 0.0f)
+  {
+    J = Homography::ComputeJacobian(x, y, Ix, Iy, s, c1, c2);
+  }
 }; // Homography
 
 }; // bp

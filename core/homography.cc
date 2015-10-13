@@ -66,11 +66,11 @@ auto Homography::Solve(const Hessian& A, const Gradient& b) -> ParameterVector
   return -A.ldlt().solve(b);
 }
 
+
 auto Homography::ComputeJacobian(float x, float y, float Ix, float Iy,
                                  float s, float c1, float c2) -> Jacobian
 {
   Jacobian J;
-
   J <<
       Ix/s,
       Iy/s,
@@ -83,6 +83,24 @@ auto Homography::ComputeJacobian(float x, float y, float Ix, float Iy,
 
   return J;
 }
+
+#if 0
+void Homography::ComputeJacobian(Eigen::Ref<Jacobian> J, float x, float y,
+                                 float Ix, float Iy, float s, float c1, float c2)
+{
+  /*
+  J[0] = Ix/s;
+  J[1] = Iy/s;
+  J[2] = Iy*(c1 - x) - Ix*(c2 - y);
+  J[3] = Ix*x - Iy*c2 - Ix*c1 + Iy*y;
+  J[4] = Iy*(c2 - y) - Ix*(c1 - x);
+  J[5] = -Ix*(c2 - y);
+  J[6] = -s*(c1 - x)*(Ix*c1 + Iy*c2 - Ix*x - Iy*y);
+  J[7] = -s*(c2 - y)*(Ix*c1 + Iy*c2 - Ix*x - Iy*y);
+  */
+  J = Homography::ComputeJacobian(x, y, Ix, Iy, s, c1, c2);
+}
+#endif
 
 } // bp
 

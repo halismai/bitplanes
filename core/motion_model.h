@@ -65,6 +65,13 @@ class MotionModel
     return Derived::ComputeJacobian(x, y, Ix, Iy, args...);
   }
 
+  template <class ... Args> static inline
+  void ComputeJacobian(Eigen::Ref<Jacobian> J, float x, float y, float Ix, float Iy,
+                       Args&... args)
+  {
+    Derived::ComputeJacobian(J, x, y, Ix, Iy, args...);
+  }
+
  protected:
   inline const Derived* derived() const { return static_cast<const Derived*>(this); }
   inline       Derived* derived()       { return static_cast<Derived*>(this); }

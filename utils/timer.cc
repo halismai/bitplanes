@@ -15,40 +15,39 @@
   along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <unsupported/Eigen/MatrixFunctions> // for exp and log
-#include <Eigen/Cholesky>
-
-#include "bitplanes/core/translation.h"
+#include "bitplanes/utils/timer.h"
+#include "bitplanes/core/config.h"
 
 namespace bp {
 
-
-auto Translation::Scale(const Transform& T, float scale) -> Transform
+void Timer::start()
 {
-  return T * scale;
+#if defined(BITPLANES_WITH_TIMING)
+  _start_time = std::chrono::high_resolution_clock::now();
+#endif
 }
 
-auto Translation::MatrixToParams(const Transform& H) -> ParameterVector
+auto Timer::stop() -> Milliseconds
 {
-  ParameterVector p(H(0,2), H(1,2));
-  return p;
+#if defined(BITPLANES_WITH_TIMING)
+  auto t_now = std::chrono::high_resolution_clock::now();
+  auto ret = std::chrono::duration_cast<Milliseconds>(t_now - _start_time);
+  _start_time = t_now;
+  return ret;
+#else
+  return Milliseconds();
+#endif
 }
 
-auto Translation::ParamsToMatrix(const ParameterVector& p) -> Transform
+auto Timer::elapsed() -> Milliseconds
 {
-  Transform T;
-  T <<
-      0.0, 0.0, p[0],
-      0.0, 0.0, p[1],
-      0.0, 0.0, 1.0;
-  return T;
-}
-
-auto Translation::Solve(const Hessian& A, const Gradient& b) -> ParameterVector
-{
-  return -A.ldlt().solve(b);
+#if defined(BITPLANES_WITH_TIMING)
+  auto t_now = std::chrono::high_resolution_clock::now();
+  return std::chrono::duration_cast<Milliseconds>(t_now - _start_time);
+#else
+  return Milliseconds();
+#endif
 }
 
 } // bp
-
 

@@ -60,6 +60,9 @@ class Affine : public MotionModel<Affine>
    */
   static Jacobian ComputeJacobian(float x, float y, float Ix, float Iy,
                                   float s = 1.0f, float c1=0.0f, float c2=0.0f);
+
+  static void ComputeJacobian(Eigen::Ref<Jacobian>, float x, float y, float Ix, float Iy,
+                              float = 1.0f, float = 0.0f, float = 0.0f);
 }; // Affine
 
 }; // bp

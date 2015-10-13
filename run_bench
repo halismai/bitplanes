@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ -z "$1" ]; then
+  echo "Need binary path"
+  exit
+fi
+
+#$1 && pprof -gv ./bin/test_set_template /tmp/prof
+$1 && pprof -gv $1 /tmp/prof
+
