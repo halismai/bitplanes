@@ -25,6 +25,12 @@ namespace bp {
 /** case insenstive string comparision */
 bool icompare(const std::string& a, const std::string& b);
 
+
+struct CaseInsenstiveComparator
+{
+  bool operator()(const std::string&, const std::string&) const;
+}; // CaseInsenstiveComparator
+
 }; // bp
 
 #endif // BITPLANES_UTILS_ICOMPARE_H

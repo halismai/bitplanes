@@ -27,6 +27,7 @@
 #include "bitplanes/utils/error.h"
 #include "bitplanes/utils/memory.h"
 #include "bitplanes/utils/str2num.h"
+#include "bitplanes/utils/icompare.h"
 
 namespace bp {
 
@@ -42,6 +43,7 @@ class ConfigFile
   typedef SharedPointer<ConfigFile> Pointer;
 
  public:
+  ConfigFile();
   ConfigFile(std::string filename);
   ConfigFile(std::ifstream& ifs);
 
@@ -62,7 +64,8 @@ class ConfigFile
 
  protected:
   void parse(std::ifstream&);
-  std::map<std::string, std::string> _data;
+
+  std::map<std::string, std::string, CaseInsenstiveComparator> _data;
 }; // ConfigFile
 
 
@@ -95,7 +98,7 @@ T ConfigFile::get(std::string name, const T& default_val) const
 template <typename T> inline
 ConfigFile& ConfigFile::set(std::string name, const T& value)
 {
-  _data[name] = value;
+  _data[name] = std::to_string(value);
   return *this;
 }
 

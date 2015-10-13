@@ -45,6 +45,11 @@ class Tracker
   void setTemplate(const cv::Mat& src, const cv::Rect& bbox);
 
   /**
+   * set the template at a sparse set of points
+   */
+  void setTemplate(const cv::Mat& src, const PointVector& keypoints);
+
+  /**
    * Track the template in the give frame with the given initialization
    */
   Result track(const cv::Mat& I, const Transform& T_init = Transform::Identity());

@@ -34,6 +34,8 @@ static inline std::vector<std::string> split(std::string& str, char delim)
 
 namespace bp {
 
+ConfigFile::ConfigFile() {}
+
 ConfigFile::ConfigFile(std::ifstream& ifs)
 {
   if(!ifs.is_open())
@@ -89,6 +91,13 @@ std::ostream& operator<<(std::ostream& os, const ConfigFile& cf)
   }
 
   return os;
+}
+
+bool ConfigFile::save(std::string filename) const
+{
+  std::ofstream ofs(filename);
+  ofs << *this;
+  return !ofs.bad();
 }
 
 

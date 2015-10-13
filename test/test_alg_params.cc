@@ -15,25 +15,17 @@
   along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "bitplanes/core/algorithm_parameters.h"
+#include <iostream>
 
-#include "bitplanes/utils/icompare.h"
+using namespace bp;
 
-#include <algorithm>
-#include <cctype>
-#include <cstring>
-
-namespace bp {
-
-bool icompare(const std::string& a, const std::string& b)
+int main()
 {
-  return !strncasecmp(a.c_str(), b.c_str(), a.size());
-}
+  auto params = AlgorithmParameters::FromConfigFile("../config/test.cfg");
+  std::cout << params << std::endl;
 
-bool CaseInsenstiveComparator::operator()(const std::string& a,
-                                          const std::string& b) const
-{
-  return strncasecmp(a.c_str(), b.c_str(), std::min(a.size(), b.size())) < 0;
+  params.save("/tmp/test.cfg");
+  return 0;
 }
-
-} // bp
 

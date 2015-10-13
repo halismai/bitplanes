@@ -364,3 +364,4 @@ void DescriptorFields2::operator()(const cv::Mat& I, const cv::Rect& bbox,
 }
 
 } // bp
+

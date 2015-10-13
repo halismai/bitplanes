@@ -46,6 +46,12 @@ struct AlgorithmParameters
     BitPlanes             //< BitPlanes (8-channels)
   }; // MultiChannelExtractorType
 
+  enum class LinearizerType
+  {
+    InverseCompositional, //< IC algorithm
+    ForwardCompositional, //< FC algorithm
+  }; // LinearizerType
+
 
   /**
    * number of pyramid levels. A negative value means 'Auto'
@@ -87,6 +93,10 @@ struct AlgorithmParameters
   MultiChannelExtractorType multi_channel_function =
       MultiChannelExtractorType::BitPlanes;
 
+  /**
+   * linearization algorithm
+   */
+  LinearizerType linearizer = LinearizerType::InverseCompositional;
 
   /**
    * loads the configurations from a config file
@@ -96,7 +106,7 @@ struct AlgorithmParameters
   /**
    * loads parameters from config file
    */
-  const AlgorithmParameters& load(std::string filename);
+  bool load(std::string filename);
 
   /**
    * saves the parameters to a file
@@ -117,7 +127,18 @@ std::string ToString(AlgorithmParameters::MultiChannelExtractorType);
 /**
  * converts a string to MultiChannelExtractorType
  */
-AlgorithmParameters::MultiChannelExtractorType FromString(std::string);
+AlgorithmParameters::MultiChannelExtractorType
+MultiChannelExtractorTypeFromString(std::string);
+
+/**
+ * converts LinearizerType to string
+ */
+std::string ToString(AlgorithmParameters::LinearizerType);
+
+/**
+ */
+AlgorithmParameters::LinearizerType
+LinearizerTypeFromString(std::string);
 
 }; // bp
 

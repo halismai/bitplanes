@@ -16,12 +16,75 @@
 */
 
 #include "bitplanes/core/algorithm_parameters.h"
+#include "bitplanes/core/debug.h"
 #include "bitplanes/utils/config_file.h"
 #include "bitplanes/utils/icompare.h"
 
 #include <iostream>
 
 namespace bp {
+
+AlgorithmParameters AlgorithmParameters::FromConfigFile(std::string filename)
+{
+  AlgorithmParameters ret;
+  if(!ret.load(filename)) {
+    Warn("Failed to load config from '%s'\n", filename.c_str());
+    return AlgorithmParameters(); // return default config
+  }
+
+  return ret;
+}
+
+bool AlgorithmParameters::load(std::string filename)
+{
+
+  try {
+    ConfigFile cf(filename);
+
+    num_levels = cf.get<int>("NumLevels", -1);
+    max_iterations = cf.get<int>("MaxIterations", 50);
+    parameter_tolerance = cf.get<float>("ParameterTolerance", 1e-5f);
+    function_tolerance = cf.get<float>("FunctionTolerance", 1e-5f);
+    sigma = cf.get<float>("Sigma", 1.2f);
+    verbose = cf.get<bool>("Verbose", true);
+    multi_channel_function = MultiChannelExtractorTypeFromString(
+    cf.get<std::string>("MultiChannelExtractorType", "BitPlanes"));
+    linearizer = LinearizerTypeFromString(
+        cf.get<std::string>("LinearizerType", "InverseCompositional"));
+
+  } catch(const std::exception& ex) {
+    Warn("Failed to load config from '%s'\n", filename.c_str());
+    Warn("error '%s'\n", ex.what());
+    return false;
+  }
+
+  return true;
+}
+
+bool AlgorithmParameters::save(std::string filename)
+{
+  try {
+    ConfigFile cf;
+
+    cf
+        ("MultiChannelExtractorType", ToString(multi_channel_function))
+        ("LinearizerType", ToString(linearizer)).set
+        ("NumLevels", num_levels).set
+        ("MaxIterations", max_iterations).set
+        ("ParameterTolerance", parameter_tolerance).set
+        ("FunctionTolerance", function_tolerance).set
+        ("Sigma", sigma).set
+        ("Verbose", verbose);
+
+    cf.save(filename);
+  } catch(const std::exception& ex) {
+    Warn("Failed to save AlgorithmParameters to '%s'\n", filename.c_str());
+    Warn("Error: '%s'\n", ex.what());
+    return false;
+  }
+
+  return true;
+}
 
 std::ostream& operator<<(std::ostream& os, const AlgorithmParameters& p)
 {
@@ -70,8 +133,8 @@ std::string ToString(AlgorithmParameters::MultiChannelExtractorType m)
   return ret;
 }
 
-
-AlgorithmParameters::MultiChannelExtractorType FromString(std::string name)
+AlgorithmParameters::MultiChannelExtractorType
+MultiChannelExtractorTypeFromString(std::string name)
 {
   if(icompare("IntensityGrayChannel", name))
     return AlgorithmParameters::MultiChannelExtractorType::IntensityGrayChannel;
@@ -87,8 +150,42 @@ AlgorithmParameters::MultiChannelExtractorType FromString(std::string name)
     return AlgorithmParameters::MultiChannelExtractorType::DescriptorFields2;
   else if(icompare("BitPlanes", name))
     return AlgorithmParameters::MultiChannelExtractorType::BitPlanes;
+  else
+    Warn("Unknown MultiChannelExtractorType '%s'\n", name.c_str());
 
   return AlgorithmParameters::MultiChannelExtractorType::BitPlanes;
 }
 
+std::string ToString(AlgorithmParameters::LinearizerType t)
+{
+  std::string ret;
+
+  switch(t)
+  {
+    case AlgorithmParameters::LinearizerType::InverseCompositional:
+      ret = "InverseCompositional";
+      break;
+
+    case AlgorithmParameters::LinearizerType::ForwardCompositional:
+      ret = "ForwardCompositional";
+      break;
+  }
+
+  return ret;
+}
+
+AlgorithmParameters::LinearizerType
+LinearizerTypeFromString(std::string name)
+{
+  if(icompare("InverseCompositional", name) || icompare("IC", name))
+    return AlgorithmParameters::LinearizerType::InverseCompositional;
+  else if(icompare("ForwardCompositional", name) || icompare("FC", name))
+    return AlgorithmParameters::LinearizerType::ForwardCompositional;
+  else
+    Warn("Unknown LinearizerType '%s'\n", name.c_str());
+
+  return AlgorithmParameters::LinearizerType::InverseCompositional;
+}
+
 } // bp
+
