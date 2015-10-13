@@ -62,6 +62,8 @@ struct EigenStdVector
 }; // EigenStdVector
 
 
+typedef typename EigenStdVector<Vector3f>::type PointVector;
+
 enum class OptimizerStatus
 {
   NotStarted,             //< optimization has not started

@@ -31,8 +31,6 @@ class Tracker
 {
  public:
   typedef Matrix33f Transform;
-  typedef Vector3f  Point;
-  typedef typename EigenStdVector<Point>::type PointVector;
 
  public:
   Tracker(AlgorithmParameters p = AlgorithmParameters());
