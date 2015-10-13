@@ -42,6 +42,7 @@ class ChannelData
   inline size_t size() const { return _inds.size(); }
 
   inline const Vector& pixels() const { return _pixels; }
+  inline const Matrix& jacobian() const { return _jacobian;  }
 
  protected:
   MotionType _motion_type;

@@ -52,6 +52,16 @@ struct AlgorithmParameters
     ForwardCompositional, //< FC algorithm
   }; // LinearizerType
 
+  /**
+   * Type of the motion to estimate
+   */
+  enum class MotionType
+  {
+    Translation,
+    Affine,
+    Homography
+  }; // MotionType
+
 
   /**
    * number of pyramid levels. A negative value means 'Auto'

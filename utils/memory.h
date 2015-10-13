@@ -15,12 +15,17 @@
   along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef BITPLANES_UTILS_MEMORY_H
+#define BITPLANES_UTILS_MEMORY_H
+
 #include <memory>
 #include <stdexcept>
 
+#include "bitplanes/core/internal/intrin.h"
+
 namespace bp {
 
-static constexpr int TT_DEFAULT_ALIGNMENT = 16;
+static constexpr int TT_DEFAULT_ALIGNMENT = BITPLANES_DEFAULT_ALIGNMENT;
 
 template <typename T> using SharedPointer = std::shared_ptr<T>;
 
@@ -165,4 +170,6 @@ bool operator!=(const AlignedAllocator<T, TAlign>&,
                 const AlignedAllocator<U, UAlign>&) { return TAlign != UAlign; }
 
 }; // bp
+
+#endif // BITPLANES_UTILS_MEMORY_H
 

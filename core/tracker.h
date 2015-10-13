@@ -25,7 +25,7 @@
 
 namespace bp {
 
-class InverseCompositionalImpl;
+template<class> class InverseCompositionalImpl;
 
 class Tracker
 {
@@ -33,7 +33,7 @@ class Tracker
   typedef Matrix33f Transform;
 
  public:
-  Tracker(AlgorithmParameters p = AlgorithmParameters());
+  Tracker(MotionType, AlgorithmParameters p = AlgorithmParameters());
 
   inline ~Tracker() {}
 
@@ -52,6 +52,11 @@ class Tracker
    */
   Result track(const cv::Mat& I, const Transform& T_init = Transform::Identity());
 
+  /**
+   * track using the last estimated transform as an initialization
+   */
+  //Result track(const cv::Mat& I);
+
  protected:
   struct Impl;
 
@@ -59,7 +64,7 @@ class Tracker
   bp::UniquePointer<Impl> _impl;
 
 
-  friend class InverseCompositionalImpl;
+  template<class> friend class InverseCompositionalImpl;
 }; // Tracker
 
 }; // bp

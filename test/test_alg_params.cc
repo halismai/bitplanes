@@ -24,7 +24,7 @@ using namespace bp;
 
 int main()
 {
-  Info("\n%s\n", BITPLANES_BUILD_STRING);
+  Info("\n%s\n\n", BITPLANES_BUILD_STRING);
 
   auto params = AlgorithmParameters::FromConfigFile("../config/test.cfg");
   std::cout << params << std::endl;

@@ -187,5 +187,6 @@ LinearizerTypeFromString(std::string name)
   return AlgorithmParameters::LinearizerType::InverseCompositional;
 }
 
+
 } // bp
 
