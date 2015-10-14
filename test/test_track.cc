@@ -21,6 +21,8 @@
 #include "bitplanes/utils/timer.h"
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/core/eigen.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 using namespace bp;
@@ -30,6 +32,16 @@ using namespace bp;
 #endif
 
 #include <iostream>
+
+static inline cv::Mat WarpImage(const cv::Mat& I, const Matrix33f& T_true)
+{
+  cv::Mat M; cv::eigen2cv<float,3,3>(T_true, M);
+
+  cv::Mat ret;
+  cv::warpPerspective(I, ret, M, cv::Size());
+
+  return ret;
+}
 
 int main()
 {
@@ -46,7 +58,6 @@ int main()
     }
   }
 
-
   cv::Rect bbox(10, 10, 600, 400);
   tracker.setTemplate(I, bbox);
 
@@ -55,11 +66,17 @@ int main()
   ProfilerStart("/tmp/prof");
 #endif
 
-  auto ret = tracker.track(I);
+  Matrix33f T_true;
+  T_true <<
+      1.0, 0.0, 0.5,
+      0.0, 1.0, 0.5,
+      0.0, 0.0, 1.0;
+  auto I1 = WarpImage(I, T_true);
+  auto ret = tracker.track(I1);
   std::cout << ret << std::endl;
 
   /*
-  auto t_ms = TimeCode(1, [&]() { tracker.track(I); });
+  auto t_ms = TimeCode(10, [&]() { tracker.track(I1); });
   Info("Time: %0.2f ms [%0.2f Hz]\n", t_ms, 1.0 /(t_ms / 1000.0));
   */
 

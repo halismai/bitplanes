@@ -56,9 +56,9 @@ typedef Eigen::Matrix<float, 8, 1> Vector8f;
 template <class M>
 struct EigenStdVector
 {
-  //typedef Eigen::aligned_allocator<M> allocator;
-  //typedef std::vector<M, allocator>   type;
-  typedef std::vector<M>   type;
+  typedef Eigen::aligned_allocator<M> allocator;
+  typedef std::vector<M, allocator>   type;
+  //typedef std::vector<M>   type;
 }; // EigenStdVector
 
 

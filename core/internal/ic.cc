@@ -26,6 +26,8 @@
 #include "bitplanes/utils/timer.h"
 
 #include <limits>
+#include <iostream>
+
 #include <opencv2/core/core.hpp>
 
 namespace bp {
@@ -66,6 +68,8 @@ track(const cv::Mat& image, const Transform& T_init)
   Timer timer;
   Result ret(T_init);
 
+  std::cout << ret.T << std::endl;
+
   auto g_norm = this->linearize(image, ret.T);
 
   const auto p_tol = this->_alg_params.parameter_tolerance,
@@ -83,6 +87,7 @@ track(const cv::Mat& image, const Transform& T_init)
     ret.final_ssd_error = this->computeSumSquaredErrors(this->_residuals);
     ret.first_order_optimality = g_norm;
     ret.time_ms = timer.stop().count();
+    ret.num_iterations = 1;
     ret.status = OptimizerStatus::FirstOrderOptimality;
     return ret;
   }
@@ -92,8 +97,8 @@ track(const cv::Mat& image, const Transform& T_init)
   int it = 1;
   while(!has_converged && it++ < max_iters)
   {
-    const auto dp = MotionModelType::Solve(_hessian, _gradient);
-    const auto Td = this->_T_inv * MotionModelType::ParamsToMatrix(dp) * this->_T;
+    const ParameterVector dp = MotionModelType::Solve(_hessian, _gradient);
+    const Transform Td = this->_T_inv * MotionModelType::ParamsToMatrix(dp) * this->_T;
     const auto sum_sq = this->computeSumSquaredErrors(this->_residuals);
 
     g_norm = _gradient.template lpNorm<Eigen::Infinity>();
@@ -123,6 +128,7 @@ track(const cv::Mat& image, const Transform& T_init)
 
   ret.time_ms = timer.stop().count();
   ret.num_iterations = it;
+  ret.final_ssd_error = old_sum_sq;
   if(ret.status == OptimizerStatus::NotStarted)
     ret.status = OptimizerStatus::MaxIterations;
 

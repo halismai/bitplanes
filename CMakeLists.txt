@@ -47,9 +47,9 @@ configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
 
 find_package(PkgConfig REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -std=c++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -mfpmath=sse")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -fstrict-aliasing")
-
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
 
 option(BUILD_STATIC            "Build a static library instead of shared" ON)
 option(BITPLANES_WITH_OPENMP   "Enable openmp"                            ON)
@@ -74,10 +74,10 @@ endif()
 #
 # REQUIRED libraries
 #
-find_package(OpenCV REQUIRED COMPONENTS core imgproc calib3d highgui)
+find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui)
 list(APPEND MY_INCLUDE_DIRS ${OpenCV_INCLUDE_DIR})
 list(APPEND MY_LINK_DIRS    ${OpenCV_LINK_DIRECTORIES})
-list(APPEND MY_LIBRARIES    ${OpenCV_LIBRARIES})
+list(APPEND MY_LIBRARIES    ${OpenCV_LIBS})
 
 pkg_check_modules(Eigen REQUIRED eigen3)
 list(APPEND MY_INCLUDE_DIRS ${Eigen_INCLUDE_DIRS})

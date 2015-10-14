@@ -51,7 +51,7 @@ class ChannelData
   std::vector<size_t> _inds;
 
  public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+  //EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 }; // ChannelData
 
 }; // bp

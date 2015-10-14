@@ -122,6 +122,8 @@ struct Tracker::Impl
   int _interp; //< cv::INTER_LINEAR
   int _border; //< cv::BORDER_CONSTANT
   cv::Scalar _border_val = cv::Scalar(0.0);
+
+  //EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 }; // Tracker::Impl
 
 }; // bp

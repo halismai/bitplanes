@@ -43,7 +43,6 @@ class InverseCompositionalImpl : public Tracker::Impl
 
   inline ~InverseCompositionalImpl() {}
 
-
   /**
    * track the template (does the optimization)
    */
@@ -64,6 +63,9 @@ class InverseCompositionalImpl : public Tracker::Impl
  protected:
   Hessian  _hessian;
   Gradient _gradient;
+
+ public:
+  //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 }; // InverseCompositionalImpl
 }; // bp
 

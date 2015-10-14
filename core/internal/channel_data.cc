@@ -45,33 +45,22 @@ void GetValidData(const cv::Mat& image, const PointVector& points,
                   std::vector<size_t>& inds)
 {
   assert( image.isContinuous() && "image must be continous" );
-
   const T* I_ptr = image.ptr<const T>();
   const int stride = image.cols;
+
+  const auto N = points.size();
 
   gradients.clear();
   pixels.clear();
   inds.clear();
 
-  const auto N = points.size();
-  gradients.resize(N);
-  pixels.resize(N);
-
-  std::vector<uint8_t> tmp_inds(N, 0);
+  gradients.reserve(N);
+  pixels.reserve(N);
+  inds.reserve(N);
 
   int y_off = points[0].y(),
       x_off = points[0].x();
 
-#define USE_SCHARR 0
-
-#if USE_SCHARR
-  cv::Mat Gx, Gy;
-  cv::Scharr(image, Gx, CV_32F, 1, 0, 1.0 / 16.0);
-  cv::Scharr(image, Gy, CV_32F, 0, 1, 1.0 / 16.0);
-#endif
-
-
-  size_t cc = 0;
   for(size_t i = 0; i < N; ++i)
   {
     int y = static_cast<int>( points[i].y() ) - y_off,
@@ -81,38 +70,18 @@ void GetValidData(const cv::Mat& image, const PointVector& points,
     {
       int ii = y*stride + x;
 
-#if USE_SCHARR
-      float Ix = Gx.at<float>(y,x),
-            Iy = Gy.at<float>(y,x);
-#else
       float Ix = (float) I_ptr[ii+1] - (float) I_ptr[ii-1],
             Iy = (float) I_ptr[ii+stride] - (float) I_ptr[ii-stride];
-#endif
 
       Eigen::Matrix<float,1,2> G(Ix, Iy);
       if( true || G.array().abs().sum() > -1.0f )
       {
-        tmp_inds[i] = 1;
-        pixels[cc] = I_ptr[ii];
-        gradients[cc] = 0.5f * G;
-        cc += 1;
+        inds.push_back(i);
+        pixels.push_back(I_ptr[ii]);
+        gradients.push_back(G * 0.5f);
       }
     }
   }
-
-  if(cc < N) {
-    pixels.erase(pixels.begin(), pixels.begin() + cc);
-    gradients.erase(gradients.begin(), gradients.begin() + cc);
-  }
-
-  inds.clear();
-  inds.reserve(N);
-  //inds.resize(N);
-  for(size_t j = 0; j < tmp_inds.size(); ++j)
-    if(tmp_inds[j])
-      inds.push_back(j);
-
-  printf("%zu %zu\n", inds.size(), pixels.size());
 }
 
 
@@ -135,8 +104,6 @@ ComputeJacobian(const ImageGradientVector& gradients, const PointVector& points,
     size_t ii = inds[i];
     float x = points[ii].x(),
           y = points[ii].y();
-
-    //tmp_jacobian.col(i) = Motion::ComputeJacobian(x, y, Ix, Iy, s, c1, c2);
 
     Motion::ComputeJacobian(tmp_jacobian.col(i), x, y, Ix, Iy, s, c1, c2);
   }

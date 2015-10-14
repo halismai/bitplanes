@@ -62,7 +62,6 @@ class Tracker
 
  protected:
   bp::UniquePointer<Impl> _impl;
-
   template<class> friend class InverseCompositionalImpl;
 }; // Tracker
 

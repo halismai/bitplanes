@@ -18,6 +18,8 @@
 #include "bitplanes/core/internal/census.h"
 #include "bitplanes/core/internal/v128.h"
 
+#include "bitplanes/utils/error.h"
+
 #include <opencv2/core/core.hpp>
 
 #include <algorithm>
@@ -282,7 +284,7 @@ void CensusTransform(const cv::Mat& src, cv::Mat& dst,
       break;
 
     default:
-      throw std::runtime_error("unsupported image type");
+      THROW_ERROR("unsupported image type");
   }
 }
 
