@@ -15,40 +15,20 @@
   along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <unsupported/Eigen/MatrixFunctions> // for exp and log
-#include <Eigen/Cholesky>
 
-#include "bitplanes/core/translation.h"
+#ifndef BITPLANES_CORE_INTERNAL_OPTIM_COMMON_H
+#define BITPLANES_CORE_INTERNAL_OPTIM_COMMON_H
+
+#include "bitplanes/core/types.h"
 
 namespace bp {
 
+bool TestConverged(float dp_norm, float p_norm, float x_tol, float g_norm,
+                   float tol_opt, float rel_factor, float new_f, float old_f,
+                   float f_tol, float sqrt_eps, int it, int max_iters, bool verbose,
+                   OptimizerStatus& status);
 
-auto Translation::Scale(const Transform& T, float scale) -> Transform
-{
-  return T * scale;
-}
+}; // bp
 
-auto Translation::MatrixToParams(const Transform& H) -> ParameterVector
-{
-  ParameterVector p(H(0,2), H(1,2));
-  return p;
-}
-
-auto Translation::ParamsToMatrix(const ParameterVector& p) -> Transform
-{
-  Transform T;
-  T <<
-      1.0, 0.0, p[0],
-      0.0, 1.0, p[1],
-      0.0, 0.0, 1.0;
-  return T;
-}
-
-auto Translation::Solve(const Hessian& A, const Gradient& b) -> ParameterVector
-{
-  return -A.ldlt().solve(b);
-}
-
-} // bp
-
+#endif // BITPLANES_CORE_INTERNAL_OPTIM_COMMON_H
 

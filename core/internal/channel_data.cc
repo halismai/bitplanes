@@ -71,8 +71,8 @@ void GetValidData(const cv::Mat& image, const PointVector& points,
 #endif
 
 
-  size_t i = 0;
-  for(i = 0; i < N; ++i)
+  size_t cc = 0;
+  for(size_t i = 0; i < N; ++i)
   {
     int y = static_cast<int>( points[i].y() ) - y_off,
         x = static_cast<int>( points[i].x() ) - x_off;
@@ -93,21 +93,26 @@ void GetValidData(const cv::Mat& image, const PointVector& points,
       if( true || G.array().abs().sum() > -1.0f )
       {
         tmp_inds[i] = 1;
-        pixels[i] = I_ptr[ii];
-        gradients[i] = 0.5f * G;
+        pixels[cc] = I_ptr[ii];
+        gradients[cc] = 0.5f * G;
+        cc += 1;
       }
     }
   }
 
-  if(i < N) {
-    pixels.erase(pixels.begin(), pixels.begin() + i);
-    gradients.erase(gradients.begin(), gradients.begin() + i);
+  if(cc < N) {
+    pixels.erase(pixels.begin(), pixels.begin() + cc);
+    gradients.erase(gradients.begin(), gradients.begin() + cc);
   }
 
   inds.clear();
-  inds.resize(N);
-  for(size_t j = 0, jj = 0; j < tmp_inds.size(); ++j)
-    if(tmp_inds[j]) inds[jj++] = j;
+  inds.reserve(N);
+  //inds.resize(N);
+  for(size_t j = 0; j < tmp_inds.size(); ++j)
+    if(tmp_inds[j])
+      inds.push_back(j);
+
+  printf("%zu %zu\n", inds.size(), pixels.size());
 }
 
 
@@ -148,7 +153,7 @@ void ChannelData::set(const cv::Mat& image, const PointVector& points,
 
   assert( !points.empty() );
   assert( points[0].x() >= 0 && points[0].x() < image.cols &&
-         points[0].y() >= 0 && points[0].y() < image.rows  );
+          points[0].y() >= 0 && points[0].y() < image.rows  );
 
   ImageGradientVector gradients;
   std::vector<float> tmp_pixels;

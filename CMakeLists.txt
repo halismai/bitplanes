@@ -48,6 +48,7 @@ configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
 find_package(PkgConfig REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -std=c++11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -fstrict-aliasing")
 
 
 option(BUILD_STATIC            "Build a static library instead of shared" ON)
@@ -145,6 +146,7 @@ get_filename_component(P_DIR ${PROJECT_SOURCE_DIR} DIRECTORY)
 list(APPEND MY_INCLUDE_DIRS "${P_DIR}")
 
 add_definitions(${MY_DEFINES})
+add_definitions(-D_DEBUG_)
 include_directories(${MY_INCLUDE_DIRS})
 link_directories(${MY_LINK_DIRS})
 

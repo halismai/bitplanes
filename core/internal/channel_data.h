@@ -49,6 +49,9 @@ class ChannelData
   Vector _pixels;
   Matrix _jacobian;
   std::vector<size_t> _inds;
+
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 }; // ChannelData
 
 }; // bp
