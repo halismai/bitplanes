@@ -29,6 +29,7 @@
 #include "bitplanes/utils/timer.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #if defined(BITPLANES_WITH_TBB)
 #include <tbb/parallel_for.h>
@@ -46,7 +47,10 @@ Tracker::Impl::Impl(MotionType motion_model, AlgorithmParameters p)
     : _alg_params(p), _motion_type(motion_model)
       , _mc(MultiChannelExtractor::Create(p.multi_channel_function))
       , _T(Matrix33f::Identity()), _T_inv(Matrix33f::Identity())
-      , _interp(cv::INTER_LINEAR), _border(cv::BORDER_CONSTANT) {}
+      , _interp(cv::INTER_LINEAR), _border(cv::BORDER_CONSTANT)
+{
+  _mc->setSigma(p.sigma);
+}
 
 Tracker::Impl::~Impl() {}
 
@@ -119,6 +123,8 @@ void Tracker::Impl::computeResiduals(const cv::Mat& I, const Transform& T)
   imwarp(I, _Iw, T, _points, _bbox, _interp_maps[0], _interp_maps[1],
          _motion_type == MotionType::Homography, _interp, _border, _border_val[0]);
 
+  cv::imshow("Iw", _Iw);
+  cv::waitKey(50);
   computeChannels(_Iw, cv::Rect(0,0,_Iw.cols,_Iw.rows), _channels_warped);
 
   const auto N = _channels_warped.size();

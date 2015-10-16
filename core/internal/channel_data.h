@@ -38,20 +38,15 @@ class ChannelData
 
   void computeResiduals(const cv::Mat& Cw, Vector& residuals) const;
 
-  inline const std::vector<size_t>& indices() const { return _inds; }
-  inline size_t size() const { return _inds.size(); }
+  inline size_t size() const { return _pixels.size(); }
 
   inline const Vector& pixels() const { return _pixels; }
   inline const Matrix& jacobian() const { return _jacobian;  }
 
  protected:
   MotionType _motion_type;
-  Vector _pixels;
-  Matrix _jacobian;
-  std::vector<size_t> _inds;
-
- public:
-  //EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+  Vector     _pixels;
+  Matrix     _jacobian;
 }; // ChannelData
 
 }; // bp

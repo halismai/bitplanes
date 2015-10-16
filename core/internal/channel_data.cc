@@ -111,6 +111,92 @@ ComputeJacobian(const ImageGradientVector& gradients, const PointVector& points,
   jacobians = tmp_jacobian.transpose();
 }
 
+/**
+ * \param image the input image
+ * \param point vector of template points
+ * \param pixels intensity values
+ * \param jacobian jacobian of the warp
+ */
+template <typename T, class M> static inline
+void GetValidData(const cv::Mat& image, const PointVector& points,
+                  typename ChannelData::Vector& pixels,
+                  typename ChannelData::Matrix& jacobian,
+                  float s, float c1, float c2)
+{
+
+  const T* I_ptr = image.ptr<const T>();
+  const int stride = image.cols;
+  const auto n = (int) points.size();
+
+  THROW_ERROR_IF(0 == n, "no points");
+
+  typedef MotionModel<M> Motion;
+  constexpr int DOF = Motion::DOF;
+
+  if(pixels.size() != n) pixels.resize(n, 1);
+  if(jacobian.rows() != n || jacobian.cols() != DOF) jacobian.resize(n, DOF);
+
+  // first point is an offset
+  int y_off = points[0].y(),
+      x_off = points[0].x();
+
+  ImageGradientVector G(n);
+  for(int i = 0; i < n; ++i)
+  {
+    int y = static_cast<int>(points[i].y()) - y_off,
+        x = static_cast<int>(points[i].x()) - x_off;
+
+    if(x > 0 && x < image.cols - 1 && y > 0 && y < image.rows - 1)
+    {
+      int ii = y*stride + x;
+      float Ix = 0.5f * ((float) I_ptr[ii+1] - (float) I_ptr[ii-1]),
+            Iy = 0.5f * ((float) I_ptr[ii+stride] - (float) I_ptr[ii-stride]);
+
+      G[i] = ImageGradient(Ix, Iy);
+      pixels[i] = I_ptr[ii];
+
+    } else
+    {
+      pixels[i] = 0.0f;
+      G[i].setZero();
+    }
+  }
+
+  for(size_t i = 0; i < G.size(); ++i)
+  {
+    typename Motion::Jacobian J;
+    Motion::ComputeJacobian(J, points[i].x(), points[i].y(), G[i].x(), G[i].y(),
+                            s, c1, c2);
+    jacobian.row(i) = J;
+  }
+
+}
+
+template <typename T> static inline
+void GetValidData(const cv::Mat& image, const PointVector& points,
+                  typename ChannelData::Vector& pixels,
+                  typename ChannelData::Matrix& jacobian,
+                  MotionType motion_type, float s, float c1, float c2)
+{
+  switch(motion_type)
+  {
+    case MotionType::Homography:
+      {
+        GetValidData<T,Homography>(image, points, pixels, jacobian, s, c1, c2);
+      } break;
+
+    case MotionType::Affine:
+      {
+        GetValidData<T,Affine>(image, points, pixels, jacobian, s, c1, c2);
+      } break;
+
+    case MotionType::Translation:
+      {
+        GetValidData<T,Translation>(image, points, pixels, jacobian, s, c1, c2);
+      } break;
+  }
+}
+
 void ChannelData::set(const cv::Mat& image, const PointVector& points,
                       float s, float c1, float c2)
 {
@@ -131,39 +217,19 @@ void ChannelData::set(const cv::Mat& image, const PointVector& points,
   switch( image.type() )
   {
     case cv::DataType<uint8_t>::type:
-      GetValidData<uint8_t>(image, points, gradients, tmp_pixels, _inds);
+      GetValidData<uint8_t>(image, points, _pixels, _jacobian, _motion_type,
+                            s, c1, c2);
       break;
 
     case cv::DataType<float>::type:
-      GetValidData<float>(image, points, gradients, tmp_pixels, _inds);
+      GetValidData<float>(image, points, _pixels, _jacobian, _motion_type,
+                          s, c1, c2);
       break;
 
     default:
       throw std::runtime_error("invalid image/channel data type");
   }
 
-  //
-  // copy the intensities
-  //
-  _pixels.resize(tmp_pixels.size());
-  memcpy(_pixels.data(), tmp_pixels.data(), sizeof(float) * tmp_pixels.size());
-
-  //
-  // compute the jacobians
-  //
-
-  switch(_motion_type)
-  {
-    case MotionType::Homography:
-      ComputeJacobian<Homography>(gradients, points, _inds, _jacobian, s, c1, c2);
-      break;
-    case MotionType::Translation:
-      ComputeJacobian<Translation>(gradients, points, _inds, _jacobian, s, c1, c2);
-      break;
-    case MotionType::Affine:
-      ComputeJacobian<Affine>(gradients, points, _inds, _jacobian, s, c1, c2);
-      break;
-  }
 }
 
 
@@ -195,6 +261,19 @@ void ComputeResiduals(const uint8_t* ptr, const std::vector<size_t>& indices,
     e[i] = static_cast<float>(ptr[ inds[i] ]) - p[i];
 }
 
+template <typename T> inline
+void ComputeResiduals(const T* ptr, const typename ChannelData::Vector& pixels,
+                      Eigen::VectorXf& E)
+{
+  const auto n = pixels.size();
+  if(E.size() != n)
+    E.resize(n);
+
+#pragma omp simd
+  for(int i = 0; i < n; ++i)
+    E[i] = static_cast<float>(ptr[i]) - pixels[i];
+}
+
 void ChannelData::computeResiduals(const cv::Mat& Cw, Eigen::VectorXf& E) const
 {
   assert( Cw.type() == cv::DataType<uint8_t>::type ||
@@ -203,11 +282,11 @@ void ChannelData::computeResiduals(const cv::Mat& Cw, Eigen::VectorXf& E) const
   switch( Cw.type() )
   {
     case cv::DataType<uint8_t>::type:
-      ComputeResiduals(Cw.ptr<const uint8_t>(), indices(), pixels(), E);
+      ComputeResiduals(Cw.ptr<const uint8_t>(), pixels(), E);
       break;
 
     case cv::DataType<float>::type:
-      ComputeResiduals(Cw.ptr<const float>(), indices(), pixels(), E);
+      ComputeResiduals(Cw.ptr<const float>(), pixels(), E);
       break;
 
     default:

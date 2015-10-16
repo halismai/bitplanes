@@ -284,7 +284,7 @@ void BitPlanesFast::operator()(const cv::Mat& src, const cv::Rect& bbox,
     - _offset + stride,
     - _offset };
 
-#if defined(BITPLANES_WITH_TBB)
+#if 0 && defined(BITPLANES_WITH_TBB)
   tbb::parallel_for(
       tbb::blocked_range<int>(0,8),
       [&](const tbb::blocked_range<int>& r) {

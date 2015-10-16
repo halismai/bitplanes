@@ -19,6 +19,7 @@
 #include "bitplanes/core/internal/intrin.h"
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/core/eigen.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include <cassert>
@@ -30,6 +31,7 @@ void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
             cv::Mat& xmap, cv::Mat& ymap, bool is_projective,
             int interp, int border, float border_val)
 {
+#if 1
   //
   // should set this to zero if there are holes in the points
   // for now, we do this densely
@@ -63,6 +65,13 @@ void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
   }
 
   cv::remap(src, dst, xmap, ymap, interp, border, cv::Scalar(border_val));
+#else
+  cv::Mat M;
+  cv::eigen2cv(T, M);
+  int flags = interp | cv::WARP_INVERSE_MAP;
+  cv::warpPerspective(src(box), dst, M, cv::Size(), flags, border,
+                      cv::Scalar(border_val));
+#endif
 }
 
 #if defined(BITPLANES_HAVE_SSE3)

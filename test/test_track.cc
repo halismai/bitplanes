@@ -18,7 +18,9 @@
 
 #include "bitplanes/core/config.h"
 #include "bitplanes/core/tracker.h"
+
 #include "bitplanes/utils/timer.h"
+#include "bitplanes/utils/error.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/eigen.hpp>
@@ -32,6 +34,7 @@ using namespace bp;
 #endif
 
 #include <iostream>
+#include <Eigen/LU>
 
 static inline cv::Mat WarpImage(const cv::Mat& I, const Matrix33f& T_true)
 {
@@ -58,7 +61,12 @@ int main()
     }
   }
 
-  cv::Rect bbox(10, 10, 600, 400);
+  I = cv::imread("/home/halismai/lena.png", cv::IMREAD_GRAYSCALE);
+  THROW_ERROR_IF(I.empty(), "couldn not read image");
+
+  std::cout << I.size() << std::endl;
+
+  cv::Rect bbox(50, 50, 300, 200);
   tracker.setTemplate(I, bbox);
 
 #if defined(BITPLANES_WITH_PROFILER)
@@ -66,25 +74,36 @@ int main()
   ProfilerStart("/tmp/prof");
 #endif
 
-  Matrix33f T_true;
+  Matrix33f T_true, T_init;
   T_true <<
       1.0, 0.0, 0.5,
       0.0, 1.0, 0.5,
       0.0, 0.0, 1.0;
   auto I1 = WarpImage(I, T_true);
-  auto ret = tracker.track(I1);
+
+  T_init.setIdentity();
+  auto ret = tracker.track(I, T_init);
   std::cout << ret << std::endl;
 
-  /*
-  auto t_ms = TimeCode(10, [&]() { tracker.track(I1); });
+  auto t_ms = TimeCode(0, [&]() { tracker.track(I1); });
   Info("Time: %0.2f ms [%0.2f Hz]\n", t_ms, 1.0 /(t_ms / 1000.0));
-  */
 
 #if defined(BITPLANES_WITH_PROFILER)
   ProfilerFlush();
   ProfilerStop();
 #endif
 
+
+  ret.T /= ret.T(2,2);
+
+  std::cout << "ERROR: " <<
+      ((T_true.inverse() * ret.T) - Matrix33f::Identity()).lpNorm<Eigen::Infinity>()
+      << std::endl;
+
+  std::cout << ret.T << std::endl;
+
   return 0;
 }
+
+
 

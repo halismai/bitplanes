@@ -68,7 +68,6 @@ track(const cv::Mat& image, const Transform& T_init)
   Timer timer;
   Result ret(T_init);
 
-  std::cout << ret.T << std::endl;
 
   auto g_norm = this->linearize(image, ret.T);
 
@@ -98,7 +97,7 @@ track(const cv::Mat& image, const Transform& T_init)
   while(!has_converged && it++ < max_iters)
   {
     const ParameterVector dp = MotionModelType::Solve(_hessian, _gradient);
-    const Transform Td = this->_T_inv * MotionModelType::ParamsToMatrix(dp) * this->_T;
+    const Transform Td = _T_inv * MotionModelType::ParamsToMatrix(dp) * _T;
     const auto sum_sq = this->computeSumSquaredErrors(this->_residuals);
 
     g_norm = _gradient.template lpNorm<Eigen::Infinity>();
@@ -129,6 +128,7 @@ track(const cv::Mat& image, const Transform& T_init)
   ret.time_ms = timer.stop().count();
   ret.num_iterations = it;
   ret.final_ssd_error = old_sum_sq;
+  ret.first_order_optimality = g_norm;
   if(ret.status == OptimizerStatus::NotStarted)
     ret.status = OptimizerStatus::MaxIterations;
 

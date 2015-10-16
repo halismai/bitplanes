@@ -113,10 +113,8 @@ struct Tracker::Impl
    */
   llvm::SmallVector<ChannelData, 16> _channel_data;
 
-
   /** hartly's normalization */
   Matrix33f _T, _T_inv;
-
 
   // interpolation constants
   int _interp; //< cv::INTER_LINEAR
