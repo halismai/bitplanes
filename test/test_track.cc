@@ -66,7 +66,7 @@ int main()
 
   std::cout << I.size() << std::endl;
 
-  cv::Rect bbox(50, 50, 300, 200);
+  cv::Rect bbox(1, 1, I.cols-2, I.rows-2);
   tracker.setTemplate(I, bbox);
 
 #if defined(BITPLANES_WITH_PROFILER)

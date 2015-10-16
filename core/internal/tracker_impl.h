@@ -69,7 +69,8 @@ struct Tracker::Impl
 
   /**
    */
-  void computeChannels(const cv::Mat& src, const cv::Rect& bbox, ChannelsVector& C)
+  inline void computeChannels(const cv::Mat& src, const cv::Rect& bbox,
+                              ChannelsVector& C)
   {
     _mc->operator()(src, bbox, C);
   }

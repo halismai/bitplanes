@@ -63,9 +63,10 @@ void Tracker::Impl::setTemplate(const cv::Mat& image, const cv::Rect& box)
       "Bounding box is outside of image boundaries");
 
   _bbox = box;
-  _points.resize(box.area());
-  Vector2f c(0.0f, 0.0f);
+  if((int) _points.size() != box.area())
+    _points.resize(box.area());
 
+  Vector2f c(0.0f, 0.0f);
   for(int y = box.y, i = 0; y < box.y + box.height; ++y)
     for(int x = box.x; x < box.x + box.width; ++x, ++i)
     {

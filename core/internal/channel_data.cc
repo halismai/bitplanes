@@ -97,7 +97,6 @@ void GetValidData(const cv::Mat& image, const PointVector& points,
                             s, c1, c2);
     jacobian.row(i) = J;
   }
-
 }
 
 template <typename T> static inline
@@ -193,5 +192,5 @@ void ChannelData::computeResiduals(const cv::Mat& Cw, Eigen::VectorXf& E) const
   }
 }
 
-
 } // bp
+

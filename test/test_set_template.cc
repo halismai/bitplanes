@@ -23,6 +23,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+#include <iostream>
+
 using namespace bp;
 
 #if defined(BITPLANES_WITH_PROFILER)
@@ -44,9 +46,10 @@ int main()
     }
   }
 
-
   cv::Rect bbox(10, 10, 600, 400);
   tracker.setTemplate(I, bbox);
+
+  std::cout << bbox << std::endl;
 
 #if defined(BITPLANES_WITH_PROFILER)
   ProfilerFlush();
