@@ -58,7 +58,7 @@ class Tracker
   //Result track(const cv::Mat& I);
 
  protected:
-  struct Impl;
+  class Impl;
 
  protected:
   bp::UniquePointer<Impl> _impl;

@@ -41,10 +41,7 @@ setTemplate(const cv::Mat& I, const cv::Rect& bbox)
   this->computeChannels(I, bbox, this->_channels);
   this->setChannelData();
   this->allocateInterpMaps(bbox.size());
-
-  _hessian.setZero();
-  for(const auto& c : this->_channel_data)
-    _hessian.noalias() += (c.jacobian().transpose() * c.jacobian());
+  this->computeHessian<M>(_hessian);
 }
 
 template <class M> inline
@@ -52,12 +49,7 @@ float InverseCompositionalImpl<M>::
 linearize(const cv::Mat& I, const Transform& T)
 {
   this->computeResiduals(I, T); // warp and compute residuals
-
-  _gradient.setZero();
-  for(size_t i = 0; i < this->_channel_data.size(); ++i)
-    _gradient.noalias() += this->_channel_data[i].jacobian().transpose() *
-        this->_residuals[i];
-
+  this->computeGradient<M>(_residuals, _gradient);
   return _gradient.template lpNorm<Eigen::Infinity>();
 }
 
@@ -67,7 +59,6 @@ track(const cv::Mat& image, const Transform& T_init)
 {
   Timer timer;
   Result ret(T_init);
-
 
   auto g_norm = this->linearize(image, ret.T);
 

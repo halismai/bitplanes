@@ -20,16 +20,16 @@
 
 #include "bitplanes/core/tracker.h"
 #include "bitplanes/core/internal/mc_extractor.h"
-#include "bitplanes/core/internal/channel_data.h"
+#include "bitplanes/core/internal/channel_data_dense.h"
 #include "bitplanes/core/internal/SmallVector.h"
 
 #include <opencv2/core/core.hpp>
 
 namespace bp {
 
-
-struct Tracker::Impl
+class Tracker::Impl
 {
+ public:
   typedef Tracker::Impl Self;
   typedef typename MultiChannelExtractor::ChannelsVector ChannelsVector;
 
@@ -62,10 +62,7 @@ struct Tracker::Impl
 
   /**
    */
-  inline void resizeChannelData(size_t n)
-  {
-    _channel_data.resize(n, _motion_type);
-  }
+  void resizeChannelData(size_t n);
 
   /**
    */
@@ -79,6 +76,8 @@ struct Tracker::Impl
    */
   void setChannelData();
 
+
+ protected:
   /**
    */
   inline void allocateInterpMaps(const cv::Size& s)
@@ -92,6 +91,11 @@ struct Tracker::Impl
    */
   void computeResiduals(const cv::Mat&, const Transform&);
 
+  template <class M>
+  void computeHessian(typename MotionModel<M>::Hessian& H) const;
+
+  template <class M>
+  void computeGradient(const ResidualsVector&, typename MotionModel<M>::Gradient& g) const;
 
   AlgorithmParameters _alg_params; //< algorithm parameters
   MotionType _motion_type;         //< type of motion to estimate
@@ -112,7 +116,13 @@ struct Tracker::Impl
   /**
    * ChannelData, which containts jacobias and intensities
    */
-  llvm::SmallVector<ChannelData, 16> _channel_data;
+  typedef ChannelDataDense<Homography>  CDataHomography;
+  typedef ChannelDataDense<Affine>      CDataAffine;
+  typedef ChannelDataDense<Translation> CDataTranslation;
+
+  llvm::SmallVector<CDataHomography,  16> _channel_data_homography;
+  llvm::SmallVector<CDataAffine,      16> _channel_data_affine;
+  llvm::SmallVector<CDataTranslation, 16> _channel_data_translation;
 
   /** hartly's normalization */
   Matrix33f _T, _T_inv;
@@ -121,10 +131,10 @@ struct Tracker::Impl
   int _interp; //< cv::INTER_LINEAR
   int _border; //< cv::BORDER_CONSTANT
   cv::Scalar _border_val = cv::Scalar(0.0);
-
   //EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 }; // Tracker::Impl
 
 }; // bp
 
 #endif // BITPLANES_CORE_INTERNAL_TRACKER_IMPL_H
+

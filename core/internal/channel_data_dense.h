@@ -31,9 +31,9 @@ class ChannelDataDense
 {
  public:
   typedef MotionModel<MotionModelType> Motion;
-  typedef typename Motion::Jacobian Jacobian;
-  typedef typename Motion::Hessian Hessian;
-  typedef typename Motion::Gradient Gradient;
+  typedef typename Motion::Jacobian       Jacobian;
+  typedef typename Motion::Hessian        Hessian;
+  typedef typename Motion::Gradient       Gradient;
   typedef typename Motion::JacobianMatrix JacobianMatrix;
 
   typedef Vector_<float> Pixels;
@@ -65,7 +65,7 @@ class ChannelDataDense
   cv::Rect _bbox;
 }; // ChannelDataDense
 
-
 }; // bp
+
 
 #endif // BITPLANES_CORE_INTERNAL_CHANNEL_DATA_DENSE_H

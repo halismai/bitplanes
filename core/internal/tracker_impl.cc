@@ -80,41 +80,33 @@ Tracker::Impl::Impl(MotionType motion_model, AlgorithmParameters p)
 
 Tracker::Impl::~Impl() {}
 
-void Tracker::Impl::setTemplate(const cv::Mat& image, const cv::Rect& box)
+void Tracker::Impl::setTemplate(const cv::Mat& /*image*/, const cv::Rect& box)
 {
-  THROW_ERROR_IF(
-      box.y < 1 || box.y + box.height >= image.rows ||
-      box.x < 1 || box.x + box.width  >= image.cols,
-      "Bounding box is outside of image boundaries");
-
-  _bbox = box;
-  if((int) _points.size() != box.area())
-    _points.resize(box.area());
-
-  Vector2f c(0.0f, 0.0f);
-  for(int y = box.y, i = 0; y < box.y + box.height; ++y)
-    for(int x = box.x; x < box.x + box.width; ++x, ++i)
-    {
-      _points[i] = Eigen::Vector3f(x, y, 1.0f);
-      c += _points[i].head<2>();
-    }
-
-  c /= (float) _points.size(); // center of mass
-  float m = 0.0f;
-  for(const auto& pt : _points) {
-    m += (pt.head<2>() - c).norm();
+  if(_motion_type == MotionType::Homography)
+    HartlyNormalization(box, _T, _T_inv);
+  else
+  {
+    _T.setIdentity();
+    _T_inv.setIdentity();
   }
-  m /= _points.size();
+}
 
-  float s = sqrt(2.0f) / std::max(m, 1e-6f);
+void Tracker::Impl::resizeChannelData(size_t n)
+{
+  switch(_motion_type)
+  {
+    case MotionType::Homography:
+      _channel_data_homography.resize(n);
+      break;
 
-  _T << s, 0, -s*c[0],
-     0, s, -s*c[1],
-     0, 0, 1;
+    case MotionType::Affine:
+      _channel_data_affine.resize(n);
+      break;
 
-  _T_inv << 1.0f/s, 0, c[0],
-         0, 1.0f/s, c[1],
-         0, 0, 1;
+    case MotionType::Translation:
+      _channel_data_translation.resize(n);
+      break;
+  }
 }
 
 void Tracker::Impl::setChannelData()
@@ -126,21 +118,32 @@ void Tracker::Impl::setChannelData()
 
   auto Op = [=](size_t ind)
   {
-    _channel_data[ind].set(_channels[ind], _points, s, c1, c2);
+    switch(_motion_type)
+    {
+      case MotionType::Homography:
+        _channel_data_homography[ind].set(_channels[ind], _bbox, s, c1, c2);
+        break;
+
+      case MotionType::Affine:
+        _channel_data_affine[ind].set(_channels[ind], _bbox, s, c1, c2);
+        break;
+
+      case MotionType::Translation:
+        _channel_data_translation[ind].set(_channels[ind], _bbox, s, c1, c2);
+    }
   }; // Op
 
   size_t i = 0;
 #if defined(BITPLANES_WITH_TBB)
-  tbb::parallel_for(tbb::blocked_range<size_t>(0, _channel_data.size()),
-                    [=](const tbb::blocked_range<size_t>& range)
-                    {
+  tbb::parallel_for(tbb::blocked_range<size_t>(0, _channels.size()),
+                    [=](const tbb::blocked_range<size_t>& range) {
                       for(size_t j = range.begin(); j != range.end(); ++j)
                         Op(j);
                     });
   i = _channel_data.size();
 #endif
 
-  for( ; i < _channel_data.size(); ++i)
+  for( ; i < _channels.size(); ++i)
     Op(i);
 }
 
@@ -149,23 +152,34 @@ void Tracker::Impl::computeResiduals(const cv::Mat& I, const Transform& T)
   imwarp(I, _Iw, T, _points, _bbox, _interp_maps[0], _interp_maps[1],
          _motion_type == MotionType::Homography, _interp, _border, _border_val[0]);
 
-  cv::imshow("Iw", _Iw);
-  cv::waitKey(50);
   computeChannels(_Iw, cv::Rect(0,0,_Iw.cols,_Iw.rows), _channels_warped);
 
   const auto N = _channels_warped.size();
-  assert( N == _channel_data.size() && "Wrong number of channels" );
-
   _residuals.resize(N);
 
   auto Op = [=](size_t ind)
   {
-    _channel_data[ind].computeResiduals(_channels_warped[ind], _residuals[ind]);
+    switch(_motion_type)
+    {
+      case MotionType::Homography:
+        _channel_data_homography[ind].computeResiduals(_channels_warped[ind],
+                                                       _residuals[ind]);
+        break;
+
+      case MotionType::Affine:
+        _channel_data_affine[ind].computeResiduals(_channels_warped[ind],
+                                                   _residuals[ind]);
+        break;
+
+      case MotionType::Translation:
+        _channel_data_translation[ind].computeResiduals(_channels_warped[ind],
+                                                        _residuals[ind]);
+        break;
+    }
   }; // Op
 
 
   size_t i = 0;
-
 #if defined(BITPLANES_WITH_TBB)
   tbb::parallel_for(tbb::blocked_range<size_t>(0, N)
                     [=](const tbb::blocked_range<size_t>& range)
@@ -178,6 +192,64 @@ void Tracker::Impl::computeResiduals(const cv::Mat& I, const Transform& T)
 
   for( ; i < N; ++i)
     Op(i);
+}
+
+template <class CDataVector, class GradientType> static inline
+void ComputeGradient(const CDataVector& cdata, const ResidualsVector& residuals,
+                     GradientType& g)
+{
+  assert( cdata.size() == residuals.size() && "incorrect data size" );
+
+  g.setZero();
+  for(size_t i = 0; i < cdata.size(); ++i)
+    g.noalias() += cdata[i].jacobian().transpose() * residuals[i];
+}
+
+template <> void Tracker::Impl::
+computeGradient<Homography>(const ResidualsVector& residuals,
+                            typename MotionModel<Homography>::Gradient& g) const
+{
+  ComputeGradient(_channel_data_homography, residuals, g);
+}
+
+template <> void Tracker::Impl::
+computeGradient<Affine>(const ResidualsVector& residuals,
+                            typename MotionModel<Affine>::Gradient& g) const
+{
+  ComputeGradient(_channel_data_affine, residuals, g);
+}
+
+template <> void Tracker::Impl::
+computeGradient<Translation>(const ResidualsVector& residuals,
+                            typename MotionModel<Translation>::Gradient& g) const
+{
+  ComputeGradient(_channel_data_translation, residuals, g);
+}
+
+template <class CDataVector, class HessianType> static inline
+void ComputeHessian(const CDataVector& cdata, HessianType& H)
+{
+  H.setZero();
+  for(const auto& c : cdata)
+    H.noalias() += c.jacobian().transpose() * c.jacobian();
+}
+
+template <> void Tracker::Impl::
+computeHessian<Homography>(typename MotionModel<Homography>::Hessian& H) const
+{
+  ComputeHessian(_channel_data_homography, H);
+}
+
+template <> void Tracker::Impl::
+computeHessian<Affine>(typename MotionModel<Affine>::Hessian& H) const
+{
+  ComputeHessian(_channel_data_affine, H);
+}
+
+template <> void Tracker::Impl::
+computeHessian<Translation>(typename MotionModel<Translation>::Hessian& H) const
+{
+  ComputeHessian(_channel_data_translation, H);
 }
 
 } // bp

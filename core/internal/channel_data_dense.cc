@@ -134,6 +134,8 @@ void ChannelDataDense<M>::computeResiduals(const cv::Mat& Iw, Pixels& residuals)
 }
 
 template class ChannelDataDense<Homography>;
+template class ChannelDataDense<Affine>;
+template class ChannelDataDense<Translation>;
 
 } // bp
 

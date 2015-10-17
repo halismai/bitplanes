@@ -59,13 +59,9 @@ class InverseCompositionalImpl : public Tracker::Impl
    */
   float linearize(const cv::Mat&, const Transform&);
 
-
  protected:
   Hessian  _hessian;
   Gradient _gradient;
-
- public:
-  //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 }; // InverseCompositionalImpl
 }; // bp
 
