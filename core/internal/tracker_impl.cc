@@ -43,6 +43,32 @@
 
 namespace bp {
 
+static inline
+void HartlyNormalization(const cv::Rect& box, typename Tracker::Transform& T,
+                         typename Tracker::Transform& T_inv)
+{
+  Vector2f c(0.0f, 0.0f);
+  for(int y = box.y; y < box.y + box.height; ++y)
+    for(int x = box.x; x < box.x + box.width; ++x)
+      c += Vector2f(x, y);
+  c /= static_cast<float>( box.area() );
+
+  float m = 0.0f;
+  for(int y = box.y; y < box.y + box.height; ++y)
+    for(int x = box.x; x < box.x + box.width; ++x)
+      m += (Vector2f(x,y) - c).norm();
+
+  float s = sqrt(2.0f) / std::max(m, 1e-6f);
+
+  T << s, 0, -s*c[0],
+       0, s, -s*c[1],
+       0, 0, 1;
+
+  T_inv << 1.0f/s, 0, c[0],
+           0, 1.0f/s, c[1],
+           0, 0, 1;
+}
+
 Tracker::Impl::Impl(MotionType motion_model, AlgorithmParameters p)
     : _alg_params(p), _motion_type(motion_model)
       , _mc(MultiChannelExtractor::Create(p.multi_channel_function))
@@ -53,7 +79,6 @@ Tracker::Impl::Impl(MotionType motion_model, AlgorithmParameters p)
 }
 
 Tracker::Impl::~Impl() {}
-
 
 void Tracker::Impl::setTemplate(const cv::Mat& image, const cv::Rect& box)
 {
