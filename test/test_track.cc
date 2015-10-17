@@ -64,8 +64,6 @@ int main()
   I = cv::imread("/home/halismai/lena.png", cv::IMREAD_GRAYSCALE);
   THROW_ERROR_IF(I.empty(), "couldn not read image");
 
-  std::cout << I.size() << std::endl;
-
   cv::Rect bbox(1, 1, I.cols-2, I.rows-2);
   tracker.setTemplate(I, bbox);
 
@@ -84,6 +82,8 @@ int main()
   T_init.setIdentity();
   auto ret = tracker.track(I, T_init);
   std::cout << ret << std::endl;
+
+  return 0;
 
   auto t_ms = TimeCode(0, [&]() { tracker.track(I1); });
   Info("Time: %0.2f ms [%0.2f Hz]\n", t_ms, 1.0 /(t_ms / 1000.0));

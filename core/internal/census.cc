@@ -45,14 +45,15 @@ static inline void census_op(const uint8_t* src, int stride, uint8_t* dst)
 {
   const v128 c(src);
   _mm_storeu_si128((__m128i*) dst,
-                   ((v128(src - 1 - stride) C_OP c) & K0x01) |
-                   ((v128(src     - stride) C_OP c) & K0x02) |
-                   ((v128(src + 1 - stride) C_OP c) & K0x04) |
-                   ((v128(src + 1         ) C_OP c) & K0x08) |
-                   ((v128(src + 1 + stride) C_OP c) & K0x10) |
-                   ((v128(src +     stride) C_OP c) & K0x20) |
-                   ((v128(src - 1 + stride) C_OP c) & K0x40) |
-                   ((v128(src - 1         ) C_OP c) & K0x80));
+                   ((v128(src - stride - 1) C_OP c) & K0x01) |
+                   ((v128(src - stride    ) C_OP c) & K0x02) |
+                   ((v128(src - stride + 1) C_OP c) & K0x04) |
+                   ((v128(src          - 1) C_OP c) & K0x08) |
+                   ((v128(src          + 1) C_OP c) & K0x10) |
+                   ((v128(src + stride - 1) C_OP c) & K0x20) |
+                   ((v128(src + stride    ) C_OP c) & K0x40) |
+                   ((v128(src + stride + 1) C_OP c) & K0x80));
+
 }
 
 
@@ -174,6 +175,54 @@ void CensusTransformChannel(const cv::Mat& src, int offset, cv::Mat& dst, int B)
 #endif
 }
 
+void CensusTransform(const cv::Mat& src, const cv::Rect& roi, cv::Mat& dst)
+{
+  dst.create( cv::Size(roi.width+2, roi.height+2), CV_8UC1 );
+  THROW_ERROR_IF( dst.empty(), "failed to allocate" );
+
+  const int src_stride = src.cols, dst_stride = dst.cols;
+  const uint8_t* src_ptr = src.ptr<uint8_t>();// + roi.y*src_stride;
+  uint8_t* dst_ptr = dst.ptr<uint8_t>();
+
+  memset(dst_ptr, 0, dst_stride);
+
+  for(int y = 0; y < roi.height; ++y)
+  {
+    uint8_t* d_row = dst_ptr + (y + 1)*dst_stride;
+    const uint8_t* s_row = src_ptr + (y + roi.y)*src_stride;
+
+    int x = 0;
+    d_row[x] = 0;
+    for( ; x <= roi.width - 4*0xf; x += 4*0xf)
+    {
+      census_op(s_row + x + roi.x + 0*0xf, src_stride, d_row + x + 1 + 0*0xf);
+      census_op(s_row + x + roi.x + 1*0xf, src_stride, d_row + x + 1 + 1*0xf);
+      census_op(s_row + x + roi.x + 2*0xf, src_stride, d_row + x + 1 + 2*0xf);
+      census_op(s_row + x + roi.x + 3*0xf, src_stride, d_row + x + 1 + 3*0xf);
+    }
+
+    for( ; x < roi.width; ++x)
+    {
+      const int xs = x + roi.x;
+      const uint8_t c = s_row[xs];
+      d_row[x+1] =
+          ((*(s_row + xs - src_stride - 1) >= c) << 0) |
+          ((*(s_row + xs - src_stride    ) >= c) << 1) |
+          ((*(s_row + xs - src_stride + 1) >= c) << 2) |
+          ((*(s_row + xs              - 1) >= c) << 3) |
+          ((*(s_row + xs              + 1) >= c) << 4) |
+          ((*(s_row + xs + src_stride - 1) >= c) << 5) |
+          ((*(s_row + xs + src_stride    ) >= c) << 6) |
+          ((*(s_row + xs + src_stride + 1) >= c) << 7) ;
+    }
+
+    d_row[dst_stride-1] = 0;
+  }
+
+  memset(dst.ptr<uint8_t>(dst.rows-1), 0, dst_stride);
+}
+
+
 }; // simd
 
 #undef C_OP
@@ -289,4 +338,44 @@ void CensusTransform(const cv::Mat& src, cv::Mat& dst,
 }
 
 
+void CensusTransform(const cv::Mat& src, const cv::Rect& roi, cv::Mat& dst)
+{
+  THROW_ERROR_IF(src.type() != CV_8UC1, "image must be uint8_t" );
+
+  dst.create( cv::Size(roi.width+2, roi.height+2), CV_8UC1 );
+  uint8_t* dst_ptr = dst.ptr<uint8_t>();
+  const uint8_t* src_ptr = src.ptr<uint8_t>();
+  const int src_stride = src.cols, dst_stride = dst.cols;
+
+  memset(dst_ptr, 0, dst_stride);
+
+  for(int y = 0; y < roi.height; ++y)
+  {
+    uint8_t* d_row = dst_ptr + (y + 1)*dst_stride;
+    const uint8_t* s_row = src_ptr + (y + roi.y)*src_stride;
+
+    int x = 0;
+    d_row[x] = 0;
+    for(  ; x < roi.width; ++x)
+    {
+      const int xs = x + roi.x;
+      const uint8_t c = s_row[xs];
+      d_row[x+1] =
+          ((*(s_row + xs - src_stride - 1) >= c) << 0) |
+          ((*(s_row + xs - src_stride    ) >= c) << 1) |
+          ((*(s_row + xs - src_stride + 1) >= c) << 2) |
+          ((*(s_row + xs              - 1) >= c) << 3) |
+          ((*(s_row + xs              + 1) >= c) << 4) |
+          ((*(s_row + xs + src_stride - 1) >= c) << 5) |
+          ((*(s_row + xs + src_stride    ) >= c) << 6) |
+          ((*(s_row + xs + src_stride + 1) >= c) << 7) ;
+    }
+
+    d_row[dst_stride-1] = 0;
+  }
+
+  memset(dst.ptr<uint8_t>(dst.rows-1), 0, dst_stride);
+}
+
 } // bp
+

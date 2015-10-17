@@ -89,6 +89,8 @@ void Tracker::Impl::setTemplate(const cv::Mat& /*image*/, const cv::Rect& box)
     _T.setIdentity();
     _T_inv.setIdentity();
   }
+
+  _bbox = box;
 }
 
 void Tracker::Impl::resizeChannelData(size_t n)
@@ -149,8 +151,23 @@ void Tracker::Impl::setChannelData()
 
 void Tracker::Impl::computeResiduals(const cv::Mat& I, const Transform& T)
 {
-  imwarp(I, _Iw, T, _points, _bbox, _interp_maps[0], _interp_maps[1],
-         _motion_type == MotionType::Homography, _interp, _border, _border_val[0]);
+  switch(_motion_type)
+  {
+    case MotionType::Homography:
+      {
+        imwarp<Homography>(I, _Iw, T, _bbox, _interp_maps[0], _interp_maps[1], _interp);
+      } break;
+
+    case MotionType::Affine:
+      {
+        imwarp<Affine>(I, _Iw, T, _bbox, _interp_maps[0], _interp_maps[1], _interp);
+      } break;
+
+    case MotionType::Translation:
+      {
+        imwarp<Translation>(I, _Iw, T, _bbox, _interp_maps[0], _interp_maps[1], _interp);
+      } break;
+  }
 
   computeChannels(_Iw, cv::Rect(0,0,_Iw.cols,_Iw.rows), _channels_warped);
 

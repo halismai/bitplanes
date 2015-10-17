@@ -29,6 +29,8 @@
 #include <tbb/blocked_range.h>
 #endif
 
+#include <iostream>
+
 namespace bp {
 
 MultiChannelExtractor::MultiChannelExtractor(double sigma)
@@ -95,8 +97,9 @@ void IntensityGrayChannel::operator()(const cv::Mat& src, const cv::Rect& bbox,
 {
   channels.resize(1);
 
-  MultiChannelExtractor::smoothImage(src(bbox), channels[0]);
-  channels[0].convertTo(channels[0], CV_32FC1);
+  //MultiChannelExtractor::smoothImage(src(bbox), channels[0]);
+  //channels[0].convertTo(channels[0], CV_32FC1);
+  src(bbox).convertTo(channels[0], CV_32FC1);
 }
 
 inline void ImageGradient32f(const cv::Mat& src, cv::Mat& Ix, cv::Mat& Iy)

@@ -58,13 +58,13 @@ class ChannelDataDense
 
   inline size_t size() const { return static_cast<size_t>(_pixels.size()); }
 
+  inline const cv::Rect& bbox() const { return _bbox; }
+
  protected:
   Pixels _pixels;
   JacobianMatrix _jacobian;
-
   cv::Rect _bbox;
 }; // ChannelDataDense
-
 }; // bp
 
 

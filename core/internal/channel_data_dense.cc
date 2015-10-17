@@ -28,6 +28,7 @@
 #endif // BITPLANES_WITH_TBB
 
 #include <cassert>
+#include <iostream>
 
 namespace bp {
 
@@ -41,7 +42,9 @@ void SetData(const cv::Mat& image, const cv::Rect& bbox, float s, float c1, floa
 
   const int stride = image.cols;
 
-  const auto n = cv::Rect(bbox.x+1,bbox.y+1,bbox.width-1,bbox.height-1).area();
+  THROW_ERROR_IF( bbox.x < 1 || bbox.y < 1, "bad box" );
+  //const auto n = cv::Rect(bbox.x+1,bbox.y+1,bbox.width-1,bbox.height-1).area();
+  const auto n = bbox.area();
   if(pixels.size() != n)
     pixels.resize(n);
 
@@ -52,19 +55,18 @@ void SetData(const cv::Mat& image, const cv::Rect& bbox, float s, float c1, floa
 
   typename Motion::Jacobian J;
   const int y_s = bbox.y, x_s = bbox.x;
-  for(int y = y_s + 1, i=0; y < bbox.height + y_s - 1; ++y)
+  for(int y = y_s + 0, i=0; y < bbox.height + y_s - 0; ++y)
   {
-    for(int x = x_s + 1; x < bbox.width + x_s - 1; ++x, ++i)
+    for(int x = x_s + 0; x < bbox.width + x_s - 0; ++x, ++i)
     {
       const int ii = y*stride + x;
       pixels[i] = I[ii];
       float Ix = 0.5f * ( (float) I[ii+1] - (float) I[ii-1] );
-      float Iy = 0.05 * ( (float) I[ii+stride] - (float) I[ii-stride] );
-      Motion::ComputeJacobian(J, x, y, Ix, Iy, s, c1, c2);
+      float Iy = 0.5f * ( (float) I[ii+stride] - (float) I[ii-stride] );
+      Motion::ComputeJacobian(J, x-x_s, y-y_s, Ix, Iy, s, c1, c2);
       jacobian.row(i) = J;
     }
   }
-
 }
 
 template <typename T, class Pixels> static inline
@@ -74,6 +76,7 @@ void ComputeResiduals(const cv::Mat& I, const cv::Rect& bbox, const Pixels& p0,
   const auto n = p0.size();
   if(n != residuals.size())
     residuals.resize(n);
+
 
   const T* ptr = I.ptr<const T>();
   const int y_s = bbox.y, x_s = bbox.x;

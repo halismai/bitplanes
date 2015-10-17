@@ -27,6 +27,7 @@ namespace bp {
  */
 void CensusTransform(const cv::Mat&, cv::Mat&);
 
+void CensusTransform(const cv::Mat&, const cv::Rect&, cv::Mat&);
 
 /**
  * most generic form of census, patch radius and sampling locations are
@@ -37,10 +38,15 @@ void CensusTransform(const cv::Mat& src, cv::Mat& dst,
                      const int* y_off, int y_off_len);
 
 
+void CensusTransformChannel(const cv::Mat&, const cv::Rect&, int off, cv::Mat&);
+
+
 namespace simd {
 /**
  */
 void CensusTransform(const cv::Mat&, cv::Mat&);
+
+void CensusTransform(const cv::Mat&, const cv::Rect&, cv::Mat&);
 
 /**
  */

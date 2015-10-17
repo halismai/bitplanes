@@ -78,13 +78,13 @@ struct AlgorithmParameters
    * parameter tolerance. If the relative magnitude of parameters falls belows
    * this we converge
    */
-  float parameter_tolerance = 1e-5;
+  float parameter_tolerance = 1e-6;
 
   /**
    * function value tolerance. If the the relative function value falls below
    * this, we converge
    */
-  float function_tolerance = 1e-5;
+  float function_tolerance = 1e-6;
 
   /**
    * std. deviation of an isotropic Gaussian to pre-smooth images prior to

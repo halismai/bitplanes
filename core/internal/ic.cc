@@ -49,6 +49,7 @@ float InverseCompositionalImpl<M>::
 linearize(const cv::Mat& I, const Transform& T)
 {
   this->computeResiduals(I, T); // warp and compute residuals
+
   this->computeGradient<M>(_residuals, _gradient);
   return _gradient.template lpNorm<Eigen::Infinity>();
 }
@@ -114,7 +115,6 @@ track(const cv::Mat& image, const Transform& T_init)
       this->linearize(image, ret.T);
     }
   }
-
 
   ret.time_ms = timer.stop().count();
   ret.num_iterations = it;

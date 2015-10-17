@@ -17,6 +17,8 @@
 
 #include "bitplanes/core/internal/imwarp.h"
 #include "bitplanes/core/internal/intrin.h"
+#include "bitplanes/core/homography.h"
+#include "bitplanes/utils/error.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/eigen.hpp>
@@ -25,6 +27,91 @@
 #include <cassert>
 
 namespace bp {
+
+template <class M>
+void TransformPoint(const Matrix33f& T, float x, float y, float& xw, float& yw);
+
+template <> inline void
+TransformPoint<Translation>(const Matrix33f& T, float x, float y, float& xw, float& yw)
+{
+  xw = x + T(0,2);
+  yw = y + T(1,2);
+}
+
+template <> inline void
+TransformPoint<Affine>(const Matrix33f& T, float x, float y, float& xw, float& yw)
+{
+  xw = T(0,0)*x + T(0,1)*y + T(0,2);
+  yw = T(1,0)*x + T(1,1)*y + T(1,2);
+}
+
+template <> inline void
+TransformPoint<Homography>(const Matrix33f& T, float x, float y, float& xw, float& yw)
+{
+  float w_i = 1.0f / ( T(2,0)*x + T(2,1)*y + T(2,2) );
+  xw = w_i * (T(0,0)*x + T(0,1)*y + T(0,2));
+  yw = w_i * (T(1,0)*x + T(1,1)*y + T(1,2));
+}
+
+template <class M>
+void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
+            const cv::Rect& box, cv::Mat& xmap, cv::Mat& ymap, int interp)
+{
+  xmap.create(box.size(), CV_32FC1);
+  ymap.create(box.size(), CV_32FC1);
+
+  THROW_ERROR_IF( xmap.empty() || ymap.empty(), "Failed to allocate interp maps" );
+
+  cv::Mat_<float>& xm = (cv::Mat_<float>&) xmap;
+  cv::Mat_<float>& ym = (cv::Mat_<float>&) ymap;
+
+  const int x_s = box.x, y_s = box.y;
+  for(int y = 0; y < box.height; ++y)
+  {
+    for(int x = 0; x < box.width; ++x)
+    {
+      TransformPoint<M>(T, x + x_s, y + y_s, xm(y,x), ym(y,x));
+    }
+  }
+
+  cv::remap(src, dst, xmap, ymap, interp, cv::BORDER_CONSTANT, cv::Scalar(0.0));
+}
+
+template void
+imwarp<Homography>(const cv::Mat&, cv::Mat&, const Matrix33f&,
+                   const cv::Rect&, cv::Mat&, cv::Mat&, int);
+template void
+imwarp<Affine>(const cv::Mat&, cv::Mat&, const Matrix33f&,
+               const cv::Rect&, cv::Mat&, cv::Mat&, int);
+template void
+imwarp<Translation>(const cv::Mat&, cv::Mat&, const Matrix33f&,
+                    const cv::Rect&, cv::Mat&, cv::Mat&, int);
+
+template <class M>
+void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T, const cv::Rect& roi)
+{
+  const cv::Mat A = (cv::Mat_<float>(2,3) <<
+                     T(0,0), T(0,1), T(0,2),
+                     T(1,0), T(1,1), T(1,2));
+
+  cv::warpAffine(src(roi), dst, A, cv::Size(), cv::INTER_LINEAR);
+}
+
+template <> void
+imwarp<Homography>(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T, const cv::Rect& roi)
+{
+  const cv::Mat H = (cv::Mat_<float>(3,3) <<
+                     T(0,0), T(0,1), T(0,2),
+                     T(1,0), T(1,1), T(1,2),
+                     T(2,0), T(2,1), T(2,2));
+
+  cv::warpPerspective(src(roi), dst, H, cv::Size(), cv::INTER_LINEAR |
+                      cv::WARP_INVERSE_MAP);
+}
+
+template void imwarp<Homography>(const cv::Mat&, cv::Mat&, const Matrix33f&, const cv::Rect&);
+template void imwarp<Affine>(const cv::Mat&, cv::Mat&, const Matrix33f&, const cv::Rect&);
+template void imwarp<Translation>(const cv::Mat&, cv::Mat&, const Matrix33f&, const cv::Rect&);
 
 void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
             const PointVector& points, const cv::Rect& box,

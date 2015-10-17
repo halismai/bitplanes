@@ -40,6 +40,14 @@ void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
             int interp = cv::INTER_LINEAR, int border = cv::BORDER_CONSTANT,
             float border_val = 0.0f);
 
+template <class M>
+void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
+            const cv::Rect& bbox, cv::Mat& xmap, cv::Mat& ymap,
+            int interp = cv::INTER_LINEAR);
+
+template <class M>
+void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
+            const cv::Rect& bbox);
 
 namespace simd {
 
