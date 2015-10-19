@@ -11,12 +11,17 @@
 
 int main()
 {
+  //Eigen::initParallel();
+  //std::cout << "num threads: " << Eigen::nbThreads() << std::endl;
   cv::Mat I = cv::imread("/home/halismai/lena.png", cv::IMREAD_GRAYSCALE);
   cv::Rect roi(80, 50, 320, 240);
 
   bp::BitPlanesChannelData<bp::Homography> cdata;
 
+  std::cout << roi << std::endl;
   cdata.set(I, roi);
+
+  return 0;
 
   auto t_ms = bp::TimeCode(10, [&]() { cdata.set(I,roi); });
   printf("time %0.2f ms\n", t_ms);
@@ -26,18 +31,9 @@ int main()
 
   typename bp::BitPlanesChannelData<bp::Homography>::Pixels residuals;
   cdata.computeResiduals(I1, residuals);
-  /*
-  {
-    std::ofstream ofs("E");
-    ofs << residuals;
-    ofs.close();
-  }
-  */
 
-  printf("ERROR: %f\n", residuals.template lpNorm<Eigen::Infinity>());
-  printf("ERROR: %f\n", residuals.norm());
-
-  return 0;
+  printf("ERROR [inf]: %f\n", residuals.template lpNorm<Eigen::Infinity>());
+  printf("ERROR [L_2]: %f\n", residuals.norm());
 
   t_ms = bp::TimeCode(100, [&]() { cdata.computeResiduals(I1, residuals); });
   printf("time %0.2f ms\n", t_ms);

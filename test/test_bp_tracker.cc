@@ -25,32 +25,40 @@ int main()
   cv::Rect roi(80, 50, 320, 240);
 
   AlgorithmParameters alg_params;
-  alg_params.verbose = false;
+  alg_params.verbose = true;
   alg_params.parameter_tolerance = 1e-6;
-  alg_params.function_tolerance = 5e-5;
+  alg_params.function_tolerance = 1e-10;
+  alg_params.max_iterations = 1000;
 
   BitplanesTracker<Homography> tracker(alg_params);
   tracker.setTemplate(I, roi);
 
-  /*
-  auto t_ms = TimeCode(10, [&]() { tracker.setTemplate(I, roi); });
-  printf("setTemplate time %0.2f ms\n", t_ms);
-  */
 
-  auto res = tracker.track(I);
-  std::cout << res << std::endl;
+  //auto res = tracker.track(I);
+  //std::cout << res << std::endl;
 
-  printf("track time %0.2f ms\n", TimeCode(100, [&]() {tracker.track(I);}));
+  if(!alg_params.verbose)
+    printf("track time %0.2f ms\n", TimeCode(100, [&]() {tracker.track(I);}));
 
-  /*
-  cv::Mat C1, C2, D;
-  simd::CensusTransform(I, roi, C1);
-  CensusTransform(I, roi, C2);
+  Matrix33f T_true;
+  T_true <<
+      1.0, 0.0, 1.0,
+      0.0, 1.0, 0.0,
+      0.0, 0.0, 1.0;
+  T_true = T_true.inverse();
 
-  cv::absdiff(C1, C2, D);
-  cv::imshow("D", D);
-  cv::waitKey();
-  */
+  cv::Mat I1, xmap, ymap;
+  imwarp<Homography>(I, I1, T_true, cv::Rect(0,0,I.cols,I.rows));
+
+  Matrix33f T_init( Matrix33f::Identity() );
+
+  auto ret = tracker.track(I1);
+  std::cout << ret << std::endl;
+
+
+  Matrix33f T_err = (ret.T * T_true) - Matrix33f::Identity();
+  std::cout << "\n" << T_err << std::endl;
+  std::cout << "\nParameter error: " << T_err.norm() << std::endl;
 
   return 0;
 }

@@ -30,9 +30,11 @@
 #include "bitplanes/utils/error.h"
 
 #include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
 
 #include <limits>
 #include <iostream>
+#include <fstream>
 #include <array>
 
 namespace bp {
@@ -62,6 +64,7 @@ class BitplanesTracker
   AlgorithmParameters _alg_params;
   ChannelDataType _cdata;
   cv::Rect _bbox;
+  cv::Mat _I0, _I1;
   cv::Mat _Iw;
   cv::Mat _interp_maps[2];
   Matrix33f _T, _T_inv;
@@ -76,6 +79,11 @@ class BitplanesTracker
     _T_inv.setIdentity();
   }
 
+  inline void smoothImage(cv::Mat& I, const cv::Rect& roi)
+  {
+    cv::GaussianBlur(I(roi), I(roi), cv::Size(3,3), _alg_params.sigma);
+  }
+
   int _interp = cv::INTER_AREA;
 }; // BitplanesTracker
 
@@ -87,28 +95,24 @@ template<> void BitplanesTracker<Homography>::setNormalization(const cv::Rect& b
 template <class M> inline
 void BitplanesTracker<M>::setTemplate(const cv::Mat& image, const cv::Rect& bbox)
 {
+  image.copyTo(_I0);
+  smoothImage(_I0, bbox);
+
   setNormalization(bbox);
   _bbox = bbox;
-  _cdata.set(image, bbox, _T(0,0), _T_inv(0,2), _T_inv(1,2));
-}
-
-template <class M> inline
-float BitplanesTracker<M>::linearize(const cv::Mat& I, const Transform& T)
-{
-  imwarp<M>(I, _Iw, T, _bbox, _interp_maps[0], _interp_maps[1], _interp);
-  _cdata.computeResiduals(_Iw, _residuals);
-
-  _gradient = _cdata.jacobian().transpose() * _residuals;
-  return _gradient.template lpNorm<Eigen::Infinity>();
+  _cdata.set(_I0, bbox, _T(0,0), _T_inv(0,2), _T_inv(1,2));
 }
 
 template <class M> inline
 Result BitplanesTracker<M>::track(const cv::Mat& image,  const Transform& T_init)
 {
+  image.copyTo(_I1);
+  smoothImage(_I1, _bbox);
+
   Result ret(T_init);
   Timer timer;
 
-  auto g_norm = this->linearize(image, ret.T);
+  auto g_norm = this->linearize(_I1, ret.T);
   const auto p_tol = this->_alg_params.parameter_tolerance,
         f_tol = this->_alg_params.function_tolerance,
         sqrt_eps = std::sqrt(std::numeric_limits<float>::epsilon()),
@@ -116,6 +120,9 @@ Result BitplanesTracker<M>::track(const cv::Mat& image,  const Transform& T_init
 
   const auto max_iters = this->_alg_params.max_iterations;
   const auto verbose = this->_alg_params.verbose;
+
+  if(verbose)
+    printf("\t%3d/%d F=Inf g=%g\n", 1, max_iters, g_norm);
 
   if(g_norm < tol_opt*rel_factor) {
     if(verbose)
@@ -136,9 +143,6 @@ Result BitplanesTracker<M>::track(const cv::Mat& image,  const Transform& T_init
   {
     const ParameterVector dp = MotionModelType::Solve(_cdata.hessian(), _gradient);
     const auto sum_sq = _residuals.squaredNorm();
-
-    g_norm = _gradient.template lpNorm<Eigen::Infinity>();
-
     {
       const auto dp_norm = dp.norm();
       const auto p_norm = MotionModelType::MatrixToParams(ret.T).norm();
@@ -156,10 +160,10 @@ Result BitplanesTracker<M>::track(const cv::Mat& image,  const Transform& T_init
     }
 
     const Transform Td = _T_inv * MotionModelType::ParamsToMatrix(dp) * _T;
-    ret.T = ret.T * Td;
+    ret.T = Td * ret.T;
 
     if(!has_converged) {
-      this->linearize(image, ret.T);
+      g_norm = this->linearize(_I1, ret.T);
     }
   }
 
@@ -172,6 +176,26 @@ Result BitplanesTracker<M>::track(const cv::Mat& image,  const Transform& T_init
 
 
   return ret;
+}
+
+template <class M> inline
+float BitplanesTracker<M>::linearize(const cv::Mat& I, const Transform& T)
+{
+  imwarp<M>(I, _Iw, T, _bbox, _interp_maps[0], _interp_maps[1], _interp, 0.0);
+  _cdata.computeResiduals(_Iw, _residuals);
+
+  _gradient = _cdata.jacobian().transpose() * _residuals;
+
+  cv::Mat D;
+  cv::absdiff(_I0(_bbox), _Iw, D);
+  cv::imshow("D", D);
+  cv::waitKey(10);
+
+  D.convertTo(D, CV_32FC1);
+  float i_error = cv::sum(cv::sum(D))[0];
+  Info("Intensity error %g\n", i_error);
+
+  return _gradient.template lpNorm<Eigen::Infinity>();
 }
 
 }; // bp

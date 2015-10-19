@@ -19,7 +19,6 @@
 #include <Eigen/Cholesky>
 
 #include "bitplanes/core/affine.h"
-#include "bitplanes/core/debug.h"
 
 namespace bp {
 

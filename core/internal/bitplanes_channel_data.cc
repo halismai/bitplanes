@@ -26,8 +26,23 @@
 
 #include <array>
 #include <iostream>
+#include <fstream>
 
 namespace bp {
+
+template <class M> static inline typename
+EigenStdVector<typename M::WarpJacobian>::type
+ComputeWarpJacobian(const cv::Rect& roi, float s, float c1, float c2)
+{
+  const int n_valid = (roi.height-2)*(roi.width-2);
+
+  typename EigenStdVector<typename M::WarpJacobian>::type ret(n_valid);
+  for(int y = 0, i = 0; y < roi.height-2; ++y)
+    for(int x = 0; x < roi.width-2; ++x, ++i)
+      ret[i] = M::ComputeWarpJacobian(x + 1.0f, y + 1.0f, s, c1, c2);
+
+  return ret;
+}
 
 template <class M> void
 BitPlanesChannelData<M>::set(const cv::Mat& src, const cv::Rect& roi,
@@ -37,12 +52,8 @@ BitPlanesChannelData<M>::set(const cv::Mat& src, const cv::Rect& roi,
                  roi.y < 1 || roi.y > src.rows - 1,
                  "template bounding box is outside image");
 
-  const int n_valid = (roi.height)*(roi.width);
-  typename EigenStdVector<WarpJacobian>::type Jw_tmp(n_valid);
-  for(int y = 0, i = 0; y < roi.height; ++y)
-    for(int x = 0; x < roi.width; ++x, ++i) {
-      Jw_tmp[i] = M::ComputeWarpJacobian(x, y, s, c1, c2);
-    }
+  const auto Jw_tmp = ComputeWarpJacobian<M>(roi, s, c1, c2);
+  const int n_valid = Jw_tmp.size();
 
   _pixels.resize(n_valid * 8);
   float* pixel_ptr = _pixels.data();
@@ -50,7 +61,9 @@ BitPlanesChannelData<M>::set(const cv::Mat& src, const cv::Rect& roi,
   _jacobian.resize(n_valid * 8, M::DOF);
 
   cv::Mat C;
-  simd::CensusTransform(src, roi, C);
+  simd::CensusTransform2(src, roi, C);
+
+  _roi_stride = roi.width - 2;
 
   typedef Eigen::Matrix<float,1,2> ImageGradient;
 
@@ -60,7 +73,7 @@ BitPlanesChannelData<M>::set(const cv::Mat& src, const cv::Rect& roi,
     const uint8_t* srow = C.ptr<const uint8_t>(y);
     for(int x = 1; x < C.cols - 1; ++x)
     {
-      int ii = (y-1)*roi.width + x - 1;
+      int ii = (y-1)*_roi_stride + x - 1;
       const auto& Jw = Jw_tmp[ii];
       for(int b = 0; b < 8; ++b)
       {
@@ -74,14 +87,13 @@ BitPlanesChannelData<M>::set(const cv::Mat& src, const cv::Rect& roi,
             static_cast<float>(srow[x + C.cols] & (1 << b) >> b) -
             static_cast<float>(srow[x - C.cols] & (1 << b) >> b);
 
-        int jj = 8*((y-1)*roi.width + x - 1) + b;
+        int jj = 8*((y-1)*_roi_stride + x - 1) + b;
         _jacobian.row(jj) = 0.5f * ImageGradient(Ix, Iy) * Jw;
       }
     }
   }
 
-  _hessian = _jacobian.transpose() * _jacobian;
-  _roi_stride = roi.width;
+  _hessian = _jacobian.transpose() * _jacobian; // bottleneck
 }
 
 
@@ -89,27 +101,29 @@ template <class M>
 void BitPlanesChannelData<M>::computeResiduals(const cv::Mat& Iw, Pixels& residuals) const
 {
   cv::Mat C;
-  simd::CensusTransform(Iw, cv::Rect(0,0,Iw.cols,Iw.rows), C);
+  simd::CensusTransform2(Iw, cv::Rect(1,1,Iw.cols-1,Iw.rows-1), C);
 
   residuals.resize(_pixels.size());
   const float* pixels_ptr = _pixels.data();
   float* residuals_ptr = residuals.data();
 
-  for(int y = 1; y < C.rows - 1; ++y)
+  for(int y = 0; y < C.rows - 1; ++y)
   {
     const uint8_t* srow = C.ptr<const uint8_t>(y);
-    for(int x = 1; x < C.cols - 1; ++x)
+    for(int x = 0; x < C.cols - 1; ++x)
     {
-      int ii = (y-1)*_roi_stride + x - 1;
+      int ii = y*_roi_stride + x;
       for(int b = 0; b < 8; ++b)
       {
-        residuals_ptr[8*ii + b] = ((srow[x] & (1<<b)) >> b) - pixels_ptr[8*ii + b];
+        int jj = 8*ii + b;
+        residuals_ptr[jj] = ((srow[x] & (1<<b)) >> b) - pixels_ptr[jj];
       }
     }
   }
 
 }
 
-
 template class BitPlanesChannelData<Homography>;
+
 } // bp
+

@@ -36,7 +36,8 @@ bool TestConverged(float dp_norm, float p_norm, float x_tol, float g_norm,
 
   if(g_norm < tol_opt * rel_factor)
   {
-    if(verbose) printf("First order optimality reached\n");
+    if(verbose) printf("First order optimality reached [%g < %g]\n",
+                       g_norm, tol_opt * rel_factor);
 
     status = OptimizerStatus::FirstOrderOptimality;
     return true;
@@ -44,7 +45,7 @@ bool TestConverged(float dp_norm, float p_norm, float x_tol, float g_norm,
 
   if(dp_norm < x_tol)
   {
-    if(verbose) printf("Small abs step\n");
+    if(verbose) printf("Small abs step [%g < %g]\n", dp_norm, x_tol);
 
     status = OptimizerStatus::SmallAbsParameters;
     return true;
@@ -52,7 +53,8 @@ bool TestConverged(float dp_norm, float p_norm, float x_tol, float g_norm,
 
   if(dp_norm < x_tol * (sqrt_eps * p_norm))
   {
-    if(verbose) printf("Small change in parameters\n");
+    if(verbose) printf("Small change in parameters [%g < %g]\n",
+                       dp_norm, x_tol*(sqrt_eps * p_norm));
 
     status = OptimizerStatus::SmallParameterUpdate;
     return true;
@@ -60,7 +62,8 @@ bool TestConverged(float dp_norm, float p_norm, float x_tol, float g_norm,
 
   if(std::fabs(old_f - new_f) < f_tol * old_f)
   {
-    if(verbose) printf("Small relative reduction in error\n");
+    if(verbose) printf("Small relative reduction in error [%g < %g]\n",
+                       std::fabs(old_f-new_f), f_tol*old_f);
 
     status = OptimizerStatus::SmallRelativeReduction;
     return true;

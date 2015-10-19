@@ -48,6 +48,8 @@ void CensusTransform(const cv::Mat&, cv::Mat&);
 
 void CensusTransform(const cv::Mat&, const cv::Rect&, cv::Mat&);
 
+void CensusTransform2(const cv::Mat&, const cv::Rect&, cv::Mat&);
+
 /**
  */
 void CensusTransformChannel(const cv::Mat&, int addr, cv::Mat&, int off);

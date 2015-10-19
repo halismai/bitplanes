@@ -55,7 +55,8 @@ TransformPoint<Homography>(const Matrix33f& T, float x, float y, float& xw, floa
 
 template <class M>
 void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
-            const cv::Rect& box, cv::Mat& xmap, cv::Mat& ymap, int interp)
+            const cv::Rect& box, cv::Mat& xmap, cv::Mat& ymap,
+            int interp, float offset)
 {
   xmap.create(box.size(), CV_32FC1);
   ymap.create(box.size(), CV_32FC1);
@@ -70,7 +71,7 @@ void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
   {
     for(int x = 0; x < box.width; ++x)
     {
-      TransformPoint<M>(T, x + x_s, y + y_s, xm(y,x), ym(y,x));
+      TransformPoint<M>(T, x + x_s + offset, y + y_s + offset, xm(y,x), ym(y,x));
     }
   }
 
@@ -79,13 +80,13 @@ void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
 
 template void
 imwarp<Homography>(const cv::Mat&, cv::Mat&, const Matrix33f&,
-                   const cv::Rect&, cv::Mat&, cv::Mat&, int);
+                   const cv::Rect&, cv::Mat&, cv::Mat&, int, float);
 template void
 imwarp<Affine>(const cv::Mat&, cv::Mat&, const Matrix33f&,
-               const cv::Rect&, cv::Mat&, cv::Mat&, int);
+               const cv::Rect&, cv::Mat&, cv::Mat&, int, float);
 template void
 imwarp<Translation>(const cv::Mat&, cv::Mat&, const Matrix33f&,
-                    const cv::Rect&, cv::Mat&, cv::Mat&, int);
+                    const cv::Rect&, cv::Mat&, cv::Mat&, int, float);
 
 template <class M>
 void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T, const cv::Rect& roi)
@@ -98,7 +99,8 @@ void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T, const cv::Rect
 }
 
 template <> void
-imwarp<Homography>(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T, const cv::Rect& roi)
+imwarp<Homography>(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
+                   const cv::Rect& roi)
 {
   const cv::Mat H = (cv::Mat_<float>(3,3) <<
                      T(0,0), T(0,1), T(0,2),

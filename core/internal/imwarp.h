@@ -43,7 +43,7 @@ void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
 template <class M>
 void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
             const cv::Rect& bbox, cv::Mat& xmap, cv::Mat& ymap,
-            int interp = cv::INTER_LINEAR);
+            int interp = cv::INTER_LINEAR, float offset = 0.0f);
 
 template <class M>
 void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,

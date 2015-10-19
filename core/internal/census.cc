@@ -223,6 +223,59 @@ void CensusTransform(const cv::Mat& src, const cv::Rect& roi, cv::Mat& dst)
   memset(dst.ptr<uint8_t>(dst.rows-1), 0, dst_stride);
 }
 
+void CensusTransform2(const cv::Mat& src, const cv::Rect& roi, cv::Mat& dst)
+{
+  THROW_ERROR_IF(roi.x < 1 || roi.x > src.cols - 2 ||
+                 roi.y < 1 || roi.y > src.rows - 2,
+                 "ROI is outside image boundaries");
+
+  THROW_ERROR_IF(!src.isContinuous(), "src must be continuous");
+
+  THROW_ERROR_IF(src.type() != cv::DataType<uint8_t>::type,
+                 "src image must be uint8_t");
+
+  dst.create(roi.size(), CV_8UC1);
+
+  const int src_stride = src.cols;
+
+  for(int y = 0; y < roi.height; ++y)
+  {
+    const uint8_t* srow = src.ptr<const uint8_t>(y + roi.y);
+    uint8_t* drow = dst.ptr<uint8_t>(y);
+
+    int x = 0;
+    for( ; x <= roi.width - 16; x += 16)
+    {
+      const uint8_t* p = srow + x + roi.x;
+      const v128 c(p);
+      _mm_storeu_si128((__m128i*) (drow + x),
+                      ((v128(p - src_stride - 1) C_OP c) & K0x01) |
+                      ((v128(p - src_stride    ) C_OP c) & K0x02) |
+                      ((v128(p - src_stride + 1) C_OP c) & K0x04) |
+                      ((v128(p              - 1) C_OP c) & K0x08) |
+                      ((v128(p              + 1) C_OP c) & K0x10) |
+                      ((v128(p + src_stride - 1) C_OP c) & K0x20) |
+                      ((v128(p + src_stride    ) C_OP c) & K0x40) |
+                      ((v128(p + src_stride + 1) C_OP c) & K0x80));
+    }
+
+    for( ; x < roi.width; ++x)
+    {
+      const uint8_t* p = srow + x + roi.x;
+      const uint8_t c = *p;
+      drow[x] =
+          ((*(p - src_stride - 1) C_OP c) << 0) |
+          ((*(p - src_stride    ) C_OP c) << 1) |
+          ((*(p - src_stride + 1) C_OP c) << 2) |
+          ((*(p              - 1) C_OP c) << 3) |
+          ((*(p              + 1) C_OP c) << 4) |
+          ((*(p + src_stride - 1) C_OP c) << 5) |
+          ((*(p + src_stride    ) C_OP c) << 6) |
+          ((*(p + src_stride + 1) C_OP c) << 7) ;
+    }
+  }
+}
+
 
 }; // simd
 
