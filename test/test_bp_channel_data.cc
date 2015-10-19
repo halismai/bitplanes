@@ -7,7 +7,7 @@
 #include <opencv2/highgui.hpp>
 
 #include <iostream>
-
+#include <fstream>
 
 int main()
 {
@@ -18,7 +18,28 @@ int main()
 
   cdata.set(I, roi);
 
-  auto t_ms = bp::TimeCode(100, [&]() { cdata.set(I,roi); });
+  auto t_ms = bp::TimeCode(10, [&]() { cdata.set(I,roi); });
+  printf("time %0.2f ms\n", t_ms);
+
+  cv::Mat I1;
+  I(roi).copyTo(I1);
+
+  typename bp::BitPlanesChannelData<bp::Homography>::Pixels residuals;
+  cdata.computeResiduals(I1, residuals);
+  /*
+  {
+    std::ofstream ofs("E");
+    ofs << residuals;
+    ofs.close();
+  }
+  */
+
+  printf("ERROR: %f\n", residuals.template lpNorm<Eigen::Infinity>());
+  printf("ERROR: %f\n", residuals.norm());
+
+  return 0;
+
+  t_ms = bp::TimeCode(100, [&]() { cdata.computeResiduals(I1, residuals); });
   printf("time %0.2f ms\n", t_ms);
 
   return 0;

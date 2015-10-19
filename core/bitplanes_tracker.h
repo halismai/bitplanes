@@ -22,7 +22,7 @@
 #include "bitplanes/core/types.h"
 #include "bitplanes/core/algorithm_parameters.h"
 #include "bitplanes/core/motion_model.h"
-#include "bitplanes/core/internal/bitplanes_channel_data_packed.h"
+#include "bitplanes/core/internal/bitplanes_channel_data.h"
 #include "bitplanes/core/internal/normalization.h"
 #include "bitplanes/core/internal/optim_common.h"
 #include "bitplanes/core/internal/imwarp.h"
@@ -48,6 +48,8 @@ class BitplanesTracker
   typedef typename MotionModelType::Gradient        Gradient;
   typedef typename MotionModelType::ParameterVector ParameterVector;
 
+  typedef BitPlanesChannelData<M> ChannelDataType;
+
  public:
   inline BitplanesTracker(AlgorithmParameters p = AlgorithmParameters())
       : _alg_params(p), _T(Matrix33f::Identity()), _T_inv(Matrix33f::Identity()) {}
@@ -58,7 +60,7 @@ class BitplanesTracker
 
  protected:
   AlgorithmParameters _alg_params;
-  BitPlanesChannelDataPacked<M> _cdata;
+  ChannelDataType _cdata;
   cv::Rect _bbox;
   cv::Mat _Iw;
   cv::Mat _interp_maps[2];

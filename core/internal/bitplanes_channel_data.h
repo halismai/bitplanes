@@ -40,12 +40,19 @@ class BitPlanesChannelData
   void set(const cv::Mat& I, const cv::Rect& bbox,
            float s = 1.0f, float c1 = 0.0f, float c2 = 0.0f);
 
+  void computeResiduals(const cv::Mat& Iw, Pixels&) const;
+
+  inline const Pixels& pixels() const { return _pixels; }
+  inline const JacobianMatrix& jacobian() const { return _jacobian; }
+  inline const Hessian& hessian() const { return _hessian; }
+
  protected:
   Pixels _pixels;
   JacobianMatrix _jacobian;
   Hessian _hessian;
+  int _roi_stride;
 }; // BitPlanesChannelData
-
 }; // bp
 
 #endif // BITPLANES_INTERNAL_CHANNEL_DATA_H
+
