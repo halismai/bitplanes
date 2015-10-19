@@ -193,12 +193,13 @@ void CensusTransform(const cv::Mat& src, const cv::Rect& roi, cv::Mat& dst)
 
     int x = 0;
     d_row[x] = 0;
-    for( ; x <= roi.width - 4*0xf; x += 4*0xf)
+    const int w = roi.width & ~15;
+    for( ; x < w; x += 16)
     {
-      census_op(s_row + x + roi.x + 0*0xf, src_stride, d_row + x + 1 + 0*0xf);
-      census_op(s_row + x + roi.x + 1*0xf, src_stride, d_row + x + 1 + 1*0xf);
-      census_op(s_row + x + roi.x + 2*0xf, src_stride, d_row + x + 1 + 2*0xf);
-      census_op(s_row + x + roi.x + 3*0xf, src_stride, d_row + x + 1 + 3*0xf);
+      census_op(s_row + x + roi.x + 16, src_stride, d_row + x + 1 + 16);
+      //census_op(s_row + x + roi.x + 1*0xf, src_stride, d_row + x + 1 + 1*0xf);
+      //census_op(s_row + x + roi.x + 2*0xf, src_stride, d_row + x + 1 + 2*0xf);
+      //census_op(s_row + x + roi.x + 3*0xf, src_stride, d_row + x + 1 + 3*0xf);
     }
 
     for( ; x < roi.width; ++x)

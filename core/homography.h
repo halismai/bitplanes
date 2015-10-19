@@ -33,6 +33,7 @@ class Homography : public MotionModel<Homography>
   typedef typename Base::Jacobian  Jacobian;
   typedef typename Base::JacobianMatrix JacobianMatrix;
   typedef typename Base::ParameterVector ParameterVector;
+  typedef typename Base::WarpJacobian  WarpJacobian;
 
  public:
 
@@ -64,6 +65,15 @@ class Homography : public MotionModel<Homography>
                                      float c1 = 0.0f, float c2 = 0.0f)
   {
     J = Homography::ComputeJacobian(x, y, Ix, Iy, s, c1, c2);
+  }
+
+  static WarpJacobian ComputeWarpJacobian(float x, float y, float s = 1.0,
+                                          float c1 = 0.0, float c2 = 0.0);
+
+  static inline void ComputeWarpJacobian(Eigen::Ref<WarpJacobian> Jw, float x, float y,
+                                         float s = 1.0f, float c1 = 0.0f, float c2 = 0.0f)
+  {
+    Jw = Homography::ComputeWarpJacobian(x, y, s, c1, c2);
   }
 }; // Homography
 

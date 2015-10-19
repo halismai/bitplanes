@@ -28,12 +28,13 @@ class MotionModel
  public:
   typedef motion_model_traits<Derived> traits;
 
-  typedef typename traits::Transform Transform;
-  typedef typename traits::Hessian   Hessian;
-  typedef typename traits::Gradient Gradient;
-  typedef typename traits::Jacobian Jacobian;
-  typedef typename traits::JacobianMatrix JacobianMatrix;
+  typedef typename traits::Transform       Transform;
+  typedef typename traits::Hessian         Hessian;
+  typedef typename traits::Gradient        Gradient;
+  typedef typename traits::Jacobian        Jacobian;
+  typedef typename traits::JacobianMatrix  JacobianMatrix;
   typedef typename traits::ParameterVector ParameterVector;
+  typedef typename traits::WarpJacobian    WarpJacobian;
 
   static constexpr int DOF = traits::DOF;
 
@@ -70,6 +71,19 @@ class MotionModel
                        Args&... args)
   {
     Derived::ComputeJacobian(J, x, y, Ix, Iy, args...);
+  }
+
+  template <class ... Args> static inline
+  WarpJacobian ComputeWarpJacobian(float x, float y, Args& ... args)
+  {
+    return Derived::ComputeWarpJacobian(x, y, args...);
+  }
+
+  template <class ... Args> static inline
+  void ComputeWarpJacobian(Eigen::Ref<WarpJacobian> Jw, float x, float y,
+                           Args& ... args)
+  {
+    Derived::ComputeWarpJacobian(Jw, x, y, args...);
   }
 
  protected:

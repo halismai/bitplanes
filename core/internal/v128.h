@@ -43,6 +43,18 @@ struct v128
    */
   FORCE_INLINE v128(__m128i x) : _xmm(x) {}
 
+  FORCE_INLINE const v128& load(const uint8_t* p)
+  {
+    _xmm = _mm_load_si128((const __m128i*) p);
+    return *this;
+  }
+
+  FORCE_INLINE const v128& loadu(const uint8_t* p)
+  {
+    _xmm = _mm_loadu_si128((const __m128i*) p);
+    return *this;
+  }
+
   /**
    * set to constant
    */
@@ -57,7 +69,7 @@ struct v128
   /**
    * stores the 16 byte values as 16 floats
    */
-  FORCE_INLINE void storeFloat(float* p)
+  FORCE_INLINE void storeFloat(float* p) const
   {
     const auto t1 = _mm_unpacklo_epi8( _xmm, _mm_setzero_si128() );
     const auto t2 = _mm_unpackhi_epi8( _xmm, _mm_setzero_si128() );

@@ -19,6 +19,7 @@
 #include <Eigen/Cholesky>
 
 #include "bitplanes/core/affine.h"
+#include "bitplanes/core/debug.h"
 
 namespace bp {
 
@@ -72,6 +73,17 @@ auto Affine::ComputeJacobian(float x, float y, float Ix, float Iy,
       Iy / s;
 
   return J;
+}
+
+auto Affine::ComputeWarpJacobian(float x, float y, float s, float c1, float c2)
+  -> WarpJacobian
+{
+  WarpJacobian Jw;
+  Jw <<
+      x - c1, y - c2, 1.0f/s,   0.0f,   0.0f,   0.0f,
+      0.0f,     0.0f,    0.0, x - c1, y - c2,  1.0f/s;
+
+  return Jw;
 }
 
 } // bp

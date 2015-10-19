@@ -33,6 +33,7 @@ class Affine : public MotionModel<Affine>
   typedef typename Base::Jacobian  Jacobian;
   typedef typename Base::JacobianMatrix JacobianMatrix;
   typedef typename Base::ParameterVector ParameterVector;
+  typedef typename Base::WarpJacobian  WarpJacobian;
 
  public:
 
@@ -66,6 +67,15 @@ class Affine : public MotionModel<Affine>
                                      float c1 = 0.0f, float c2 = 0.0f)
   {
     J = Affine::ComputeJacobian(x, y, Ix, Iy, s, c1, c2);
+  }
+
+  static WarpJacobian ComputeWarpJacobian(float x, float y, float s = 1.0,
+                                          float c1 = 0.0, float c2 = 0.0);
+
+  static inline void ComputeWarpJacobian(Eigen::Ref<WarpJacobian> Jw, float x, float y,
+                                         float s = 1.0f, float c1 = 0.0f, float c2 = 0.0f)
+  {
+    Jw = Affine::ComputeWarpJacobian(x, y, s, c1, c2);
   }
 }; // Affine
 

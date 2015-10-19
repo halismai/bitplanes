@@ -32,9 +32,17 @@ int main()
   BitplanesTracker<Homography> tracker(alg_params);
   tracker.setTemplate(I, roi);
 
-  auto t_ms = TimeCode(100, [&]() { tracker.setTemplate(I, roi); });
+  /*
+  auto t_ms = TimeCode(10, [&]() { tracker.setTemplate(I, roi); });
   printf("setTemplate time %0.2f ms\n", t_ms);
+  */
 
+  auto res = tracker.track(I);
+  std::cout << res << std::endl;
+
+  printf("track time %0.2f ms\n", TimeCode(100, [&]() {tracker.track(I);}));
+
+  /*
   cv::Mat C1, C2, D;
   simd::CensusTransform(I, roi, C1);
   CensusTransform(I, roi, C2);
@@ -42,6 +50,7 @@ int main()
   cv::absdiff(C1, C2, D);
   cv::imshow("D", D);
   cv::waitKey();
+  */
 
   return 0;
 }

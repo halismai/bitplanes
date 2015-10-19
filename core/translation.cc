@@ -22,7 +22,6 @@
 
 namespace bp {
 
-
 auto Translation::Scale(const Transform& T, float scale) -> Transform
 {
   return T * scale;
@@ -48,6 +47,15 @@ auto Translation::Solve(const Hessian& A, const Gradient& b) -> ParameterVector
 {
   return -A.ldlt().solve(b);
 }
+
+auto Translation::ComputeWarpJacobian(float /*x*/, float /*y*/, float /*s*/,
+                                      float /*c1*/, float /*c2*/) -> WarpJacobian
+{
+  WarpJacobian Jw;
+  Jw << 1.0, 1.0f;
+  return Jw;
+}
+
 
 } // bp
 

@@ -38,6 +38,7 @@ template<> struct motion_model_traits<Homography>
   typedef Eigen::Matrix<float, 1, DOF>       Jacobian;
   typedef ParameterVector                    Gradient;
   typedef Eigen::Matrix<float, Dynamic, DOF> JacobianMatrix;
+  typedef Eigen::Matrix<float, 2, DOF>       WarpJacobian;
 };
 
 template<> struct motion_model_traits<Affine>
@@ -50,6 +51,7 @@ template<> struct motion_model_traits<Affine>
   typedef Eigen::Matrix<float, 1, DOF>       Jacobian;
   typedef ParameterVector                    Gradient;
   typedef Eigen::Matrix<float, Dynamic, DOF> JacobianMatrix;
+  typedef Eigen::Matrix<float, 2, DOF>       WarpJacobian;
 };
 
 template<> struct motion_model_traits<Translation>
@@ -62,6 +64,7 @@ template<> struct motion_model_traits<Translation>
   typedef Eigen::Matrix<float, 1, DOF>       Jacobian;
   typedef ParameterVector                    Gradient;
   typedef Eigen::Matrix<float, Dynamic, DOF> JacobianMatrix;
+  typedef Eigen::Matrix<float, 2, DOF>       WarpJacobian;
 };
 
 }; // bp

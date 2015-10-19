@@ -19,7 +19,7 @@
 #include <Eigen/Cholesky>
 
 #include "bitplanes/core/homography.h"
-#include <iostream>
+#include "bitplanes/core/math.h"
 
 namespace bp {
 
@@ -82,6 +82,17 @@ auto Homography::ComputeJacobian(float x, float y, float Ix, float Iy,
       -s*(c2 - y)*(Ix*c1 + Iy*c2 - Ix*x - Iy*y);
 
   return J;
+}
+
+auto Homography::ComputeWarpJacobian(float x, float y, float s, float c1, float c2)
+  -> WarpJacobian
+{
+  WarpJacobian Jw;
+  Jw <<
+      1.0f/s, 0.0f, y - c2, x - c1, x - c1, y - c2, -s*sq(c1 - x), -s*(c1 - x)*(c2 - y),
+      0.0f, 1.0f/s, c1 - x, y - c2, c2 - y, 0.0f, -s*(c1 - x)*(c2 - y), -s*sq(c2 - y);
+
+  return Jw;
 }
 
 } // bp
