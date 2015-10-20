@@ -6,7 +6,7 @@
 
 typedef bp::ChannelDataDense<bp::Homography> CData;
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
 #include <gperftools/profiler.h>
 #endif
 
@@ -22,7 +22,7 @@ int main()
   CData cdata;
   cdata.set(I, roi);
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
   ProfilerFlush();
   ProfilerStart("/tmp/prof");
 #endif
@@ -38,7 +38,7 @@ int main()
 
   printf("ERROR: %g\n", residuals.lpNorm<Eigen::Infinity>());
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
   ProfilerFlush();
   ProfilerStop();
 #endif

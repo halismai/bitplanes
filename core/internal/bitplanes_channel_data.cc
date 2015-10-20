@@ -17,8 +17,10 @@
 
 #include "bitplanes/core/internal/bitplanes_channel_data.h"
 #include "bitplanes/core/internal/intrin.h"
+#include "bitplanes/core/internal/v128.h"
 #include "bitplanes/core/internal/census.h"
 #include "bitplanes/core/homography.h"
+#include "bitplanes/core/debug.h"
 #include "bitplanes/utils/error.h"
 
 #include <opencv2/core.hpp>
@@ -56,7 +58,7 @@ BitPlanesChannelData<M>::set(const cv::Mat& src, const cv::Rect& roi,
   const int n_valid = Jw_tmp.size();
 
   _pixels.resize(n_valid * 8);
-  float* pixel_ptr = _pixels.data();
+  auto* pixel_ptr = _pixels.data();
 
   _jacobian.resize(n_valid * 8, M::DOF);
 
@@ -99,16 +101,26 @@ BitPlanesChannelData<M>::set(const cv::Mat& src, const cv::Rect& roi,
   _hessian = _jacobian.transpose() * _jacobian; // bottleneck
 }
 
+static const __m128i K0x01 = _mm_set1_epi8(0x01);
+static const __m128i K0x02 = _mm_set1_epi8(0x02);
+static const __m128i K0x04 = _mm_set1_epi8(0x04);
+static const __m128i K0x08 = _mm_set1_epi8(0x08);
+static const __m128i K0x10 = _mm_set1_epi8(0x10);
+static const __m128i K0x20 = _mm_set1_epi8(0x20);
+static const __m128i K0x40 = _mm_set1_epi8(0x40);
+static const __m128i K0x80 = _mm_set1_epi8(0x80);
+
 
 template <class M>
 void BitPlanesChannelData<M>::computeResiduals(const cv::Mat& Iw, Pixels& residuals) const
 {
+  residuals.resize(_pixels.size());
+  const auto* pixels_ptr = _pixels.data();
+  float* residuals_ptr = residuals.data();
+
+#if 0
   cv::Mat C;
   simd::CensusTransform2(Iw, cv::Rect(1,1,Iw.cols-1,Iw.rows-1), C);
-
-  residuals.resize(_pixels.size());
-  const float* pixels_ptr = _pixels.data();
-  float* residuals_ptr = residuals.data();
 
   for(int y = 0; y < C.rows - 1; ++y)
   {
@@ -123,6 +135,87 @@ void BitPlanesChannelData<M>::computeResiduals(const cv::Mat& Iw, Pixels& residu
       }
     }
   }
+#else
+  int src_stride = Iw.cols;
+  cv::Rect roi(1, 1, Iw.cols-1, Iw.rows-1);
+  //v128 buf[8];
+  ALIGNED(16) uint8_t obuf[8][16];
+  for(int y = 0; y < roi.height - 1; ++y)
+  {
+    const uint8_t* srow = Iw.ptr<const uint8_t>(y + roi.y);
+
+    int x = 0;
+    for( ; x <= roi.width - 16 - 1; x += 16)
+    {
+      const uint8_t* p = srow + x + roi.x;
+      const v128 c(p);
+      /*
+      buf[0] = ((v128(p - src_stride - 1) >= c) & K0x01) >> 0;
+      buf[1] = ((v128(p - src_stride    ) >= c) & K0x02) >> 1;
+      buf[2] = ((v128(p - src_stride + 1) >= c) & K0x04) >> 2;
+      buf[3] = ((v128(p              - 1) >= c) & K0x08) >> 3;
+      buf[4] = ((v128(p              + 1) >= c) & K0x10) >> 4;
+      buf[5] = ((v128(p + src_stride - 1) >= c) & K0x20) >> 5;
+      buf[6] = ((v128(p + src_stride    ) >= c) & K0x40) >> 6;
+      buf[7] = ((v128(p + src_stride + 1) >= c) & K0x80) >> 7;
+      for(int b = 0; b < 8; ++b)
+        _mm_store_si128((__m128i*) obuf[b], buf[b]);
+      */
+
+      _mm_store_si128((__m128i*) obuf[0],
+                      ((v128(p - src_stride - 1) >= c) & K0x01) >> 0);
+
+      _mm_store_si128((__m128i*) obuf[1],
+                      ((v128(p - src_stride    ) >= c) & K0x02) >> 1);
+
+      _mm_store_si128((__m128i*) obuf[2],
+                      ((v128(p - src_stride + 1) >= c) & K0x04) >> 2);
+
+      _mm_store_si128((__m128i*) obuf[3],
+                      ((v128(p              - 1) >= c) & K0x08) >> 3);
+
+      _mm_store_si128((__m128i*) obuf[4],
+                      ((v128(p              + 1) >= c) & K0x10) >> 4);
+
+      _mm_store_si128((__m128i*) obuf[5],
+                      ((v128(p + src_stride - 1) >= c) & K0x20) >> 5);
+
+      _mm_store_si128((__m128i*) obuf[6],
+                      ((v128(p + src_stride    ) >= c) & K0x40) >> 6);
+
+      _mm_store_si128((__m128i*) obuf[7],
+                      ((v128(p + src_stride + 1) >= c) & K0x80) >> 7);
+
+
+      for(int j = 0; j < 16; ++j)
+      {
+        *residuals_ptr++ = obuf[0][j] - *pixels_ptr++;
+        *residuals_ptr++ = obuf[1][j] - *pixels_ptr++;
+        *residuals_ptr++ = obuf[2][j] - *pixels_ptr++;
+        *residuals_ptr++ = obuf[3][j] - *pixels_ptr++;
+        *residuals_ptr++ = obuf[4][j] - *pixels_ptr++;
+        *residuals_ptr++ = obuf[5][j] - *pixels_ptr++;
+        *residuals_ptr++ = obuf[6][j] - *pixels_ptr++;
+        *residuals_ptr++ = obuf[7][j] - *pixels_ptr++;
+      }
+    }
+
+    for( ; x < roi.width - 1; ++x)
+    {
+      const uint8_t* p = srow + x + roi.x;
+      const uint8_t c = *p;
+
+      *residuals_ptr++ = ((*(p - src_stride - 1) >= c)) - *pixels_ptr++;
+      *residuals_ptr++ = ((*(p - src_stride    ) >= c)) - *pixels_ptr++;
+      *residuals_ptr++ = ((*(p - src_stride + 1) >= c)) - *pixels_ptr++;
+      *residuals_ptr++ = ((*(p              - 1) >= c)) - *pixels_ptr++;
+      *residuals_ptr++ = ((*(p              + 1) >= c)) - *pixels_ptr++;
+      *residuals_ptr++ = ((*(p + src_stride - 1) >= c)) - *pixels_ptr++;
+      *residuals_ptr++ = ((*(p + src_stride    ) >= c)) - *pixels_ptr++;
+      *residuals_ptr++ = ((*(p + src_stride + 1) >= c)) - *pixels_ptr++;
+    }
+  }
+#endif
 
 }
 

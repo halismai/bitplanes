@@ -31,7 +31,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#if defined(BITPLANES_WITH_TBB)
+#if BITPLANES_WITH_TBB
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 #endif
@@ -136,13 +136,13 @@ void Tracker::Impl::setChannelData()
   }; // Op
 
   size_t i = 0;
-#if defined(BITPLANES_WITH_TBB)
+#if BITPLANES_WITH_TBB
   tbb::parallel_for(tbb::blocked_range<size_t>(0, _channels.size()),
                     [=](const tbb::blocked_range<size_t>& range) {
                       for(size_t j = range.begin(); j != range.end(); ++j)
                         Op(j);
                     });
-  i = _channel_data.size();
+  i = _channels.size();
 #endif
 
   for( ; i < _channels.size(); ++i)
@@ -197,8 +197,8 @@ void Tracker::Impl::computeResiduals(const cv::Mat& I, const Transform& T)
 
 
   size_t i = 0;
-#if defined(BITPLANES_WITH_TBB)
-  tbb::parallel_for(tbb::blocked_range<size_t>(0, N)
+#if BITPLANES_WITH_TBB
+  tbb::parallel_for(tbb::blocked_range<size_t>(0, N),
                     [=](const tbb::blocked_range<size_t>& range)
                     {
                       for(size_t j = range.begin(); j != range.end(); ++j)

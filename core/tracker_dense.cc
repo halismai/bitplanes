@@ -42,8 +42,9 @@ Result TrackerDense<M>::track(const cv::Mat& image, const Transform& T_init)
 }
 
 template <class M> Result
-TrackerDense<M>::Impl::track(const cv::Mat& I, const Transform& T)
+TrackerDense<M>::Impl::track(const cv::Mat& /*I*/, const Transform& /*T*/)
 {
+  return Result();
 }
 
 template class TrackerDense<Homography>;

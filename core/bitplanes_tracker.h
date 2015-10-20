@@ -86,10 +86,12 @@ class BitplanesTracker
   inline void smoothImage(cv::Mat& I, const cv::Rect& roi)
   {
     cv::GaussianBlur(I(roi), I(roi), cv::Size(3,3), _alg_params.sigma);
-    //cv::GaussianBlur(I(roi), I(roi), cv::Size(), _alg_params.sigma);
   }
 
-  int _interp = cv::INTER_CUBIC;
+  int _interp = cv::INTER_AREA;
+
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 }; // BitplanesTracker
 
 template<> void BitplanesTracker<Homography>::setNormalization(const cv::Rect& bbox)

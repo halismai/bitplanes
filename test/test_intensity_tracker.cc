@@ -12,7 +12,7 @@
 
 #include <Eigen/LU>
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
 #include <gperftools/profiler.h>
 #endif
 
@@ -31,7 +31,7 @@ int main()
   IntensityTracker<Homography> tracker(alg_params);
   tracker.setTemplate(I, roi);
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
   ProfilerFlush();
   ProfilerStart("/tmp/prof");
 #endif
@@ -57,7 +57,7 @@ int main()
   t_ms = TimeCode(100, [&]() { tracker.track(I1); });
   printf("track time: %0.2f ms\n", t_ms);
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
   ProfilerFlush();
   ProfilerStop();
 #endif

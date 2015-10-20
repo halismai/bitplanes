@@ -27,7 +27,7 @@
 
 using namespace bp;
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
 #include <gperftools/profiler.h>
 #endif
 
@@ -51,7 +51,7 @@ int main()
 
   std::cout << bbox << std::endl;
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
   ProfilerFlush();
   ProfilerStart("/tmp/prof");
 #endif
@@ -59,7 +59,7 @@ int main()
   auto t_ms = TimeCode(100, [&]() { tracker.setTemplate(I, bbox); });
   Info("Time: %0.2f ms [%0.2f Hz]\n", t_ms, 1.0 /(t_ms / 1000.0));
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
   printf("done\n");
   ProfilerFlush();
   ProfilerStop();

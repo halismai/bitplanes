@@ -25,7 +25,7 @@
 
 #include <opencv2/core/core.hpp>
 
-#if defined(BITPLANES_WITH_TBB)
+#if BITPLANES_WITH_TBB
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 #endif // BITPLANES_WITH_TBB

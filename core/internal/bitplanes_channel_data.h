@@ -42,12 +42,13 @@ class BitPlanesChannelData
 
   void computeResiduals(const cv::Mat& Iw, Pixels&) const;
 
-  inline const Pixels& pixels() const { return _pixels; }
+  inline const Vector_<uint8_t>& pixels() const { return _pixels; }
   inline const JacobianMatrix& jacobian() const { return _jacobian; }
   inline const Hessian& hessian() const { return _hessian; }
 
  protected:
-  Pixels _pixels;
+  //Pixels _pixels;
+  Vector_<uint8_t> _pixels;
   JacobianMatrix _jacobian;
   Hessian _hessian;
   int _roi_stride;

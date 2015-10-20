@@ -23,7 +23,7 @@
 namespace bp {
 namespace simd {
 
-#if defined(BITPLANES_HAVE_SSE2)
+#if BITPLANES_HAVE_SSE2
 static FORCE_INLINE __m128i absdiff(__m128i a, __m128i b)
 {
   return _mm_sub_epi8(_mm_max_epu8(a, b), _mm_min_epu8(a, b));

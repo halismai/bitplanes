@@ -165,7 +165,7 @@ void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
 #endif
 }
 
-#if defined(BITPLANES_HAVE_SSE3)
+#if BITPLANES_HAVE_SSE3
 
 namespace {
 

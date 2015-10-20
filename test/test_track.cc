@@ -29,7 +29,7 @@
 
 using namespace bp;
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
 #include <gperftools/profiler.h>
 #endif
 
@@ -67,7 +67,7 @@ int main()
   cv::Rect bbox(1, 1, I.cols-2, I.rows-2);
   tracker.setTemplate(I, bbox);
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
   ProfilerFlush();
   ProfilerStart("/tmp/prof");
 #endif
@@ -88,11 +88,10 @@ int main()
   auto t_ms = TimeCode(0, [&]() { tracker.track(I1); });
   Info("Time: %0.2f ms [%0.2f Hz]\n", t_ms, 1.0 /(t_ms / 1000.0));
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
   ProfilerFlush();
   ProfilerStop();
 #endif
-
 
   ret.T /= ret.T(2,2);
 
@@ -104,6 +103,4 @@ int main()
 
   return 0;
 }
-
-
 

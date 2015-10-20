@@ -21,7 +21,7 @@
 #include "bitplanes/core/config.h"
 #include "bitplanes/utils/utils.h"
 
-#if defined(BITPLANES_WITH_OPENMP)
+#if BITPLANES_WITH_OPENMP
 #include <omp.h>
 #endif
 
@@ -69,7 +69,7 @@ string datetime()
 
 double GetWallClockInSeconds()
 {
-#if defined(TT_WITH_OMP)
+#if BITPLANES_WITH_OPENMP
   return omp_get_wtime();
 #else
   struct timeval tv;

@@ -13,7 +13,7 @@
 
 #include <Eigen/LU>
 
-#if defined(BITPLANES_WITH_PROFILER)
+#if BITPLANES_WITH_PROFILER
 #include <gperftools/profiler.h>
 #endif
 
