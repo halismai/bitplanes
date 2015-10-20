@@ -2,6 +2,7 @@
 #include "bitplanes/core/homography.h"
 #include "bitplanes/core/bitplanes_tracker.h"
 #include "bitplanes/core/internal/census.h"
+#include "bitplanes/core/internal/imwarp.h"
 
 #include "bitplanes/utils/timer.h"
 
