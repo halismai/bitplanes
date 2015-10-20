@@ -25,6 +25,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include <cassert>
+#include <iostream>
 
 namespace bp {
 
@@ -128,6 +129,7 @@ void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
   //
   xmap.create(box.size(), CV_32FC1);
   ymap.create(box.size(), CV_32FC1);
+
 
   assert( !xmap.empty() && !ymap.empty() && "failed to allocate" );
   assert( xmap.isContinuous() && ymap.isContinuous() && "maps must be continous");
@@ -438,5 +440,4 @@ int imwarp(const uint8_t* , int, int, const float*, const float*,
 #endif
 
 } // bp
-
 

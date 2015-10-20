@@ -60,13 +60,18 @@ bool TestConverged(float dp_norm, float p_norm, float x_tol, float g_norm,
     return true;
   }
 
-  if(std::fabs(old_f - new_f) < f_tol * old_f)
+  if(true || dp_norm < 5e-5)
   {
-    if(verbose) printf("Small relative reduction in error [%g < %g]\n",
-                       std::fabs(old_f-new_f), f_tol*old_f);
+    // do not converge based on function value if parameters are not small
+    // enough
+    if(std::fabs(old_f - new_f) < f_tol * old_f)
+    {
+      if(verbose) printf("Small relative reduction in error [%g < %g]\n",
+                         std::fabs(old_f-new_f), f_tol*old_f);
 
-    status = OptimizerStatus::SmallRelativeReduction;
-    return true;
+      status = OptimizerStatus::SmallRelativeReduction;
+      return true;
+    }
   }
 
   return false;

@@ -26,23 +26,16 @@ int main()
 
   AlgorithmParameters alg_params;
   alg_params.verbose = true;
-  alg_params.parameter_tolerance = 1e-6;
-  alg_params.function_tolerance = 1e-10;
+  alg_params.parameter_tolerance = 5e-6;
+  alg_params.function_tolerance  = 5e-6;
   alg_params.max_iterations = 1000;
+  alg_params.sigma = 1.2;
 
   BitplanesTracker<Homography> tracker(alg_params);
-  tracker.setTemplate(I, roi);
-
-
-  //auto res = tracker.track(I);
-  //std::cout << res << std::endl;
-
-  if(!alg_params.verbose)
-    printf("track time %0.2f ms\n", TimeCode(100, [&]() {tracker.track(I);}));
 
   Matrix33f T_true;
   T_true <<
-      1.0, 0.0, 1.0,
+      1.0, 0.00, 2.0,
       0.0, 1.0, 0.0,
       0.0, 0.0, 1.0;
   T_true = T_true.inverse();
@@ -50,15 +43,21 @@ int main()
   cv::Mat I1, xmap, ymap;
   imwarp<Homography>(I, I1, T_true, cv::Rect(0,0,I.cols,I.rows));
 
-  Matrix33f T_init( Matrix33f::Identity() );
+  tracker.setTemplate(I1, roi);
+  auto ret = tracker.track(I);
+  if(!alg_params.verbose)
+    printf("track time %0.2f ms\n", TimeCode(100, [&]() {tracker.track(I);}));
 
-  auto ret = tracker.track(I1);
+
   std::cout << ret << std::endl;
 
-
-  Matrix33f T_err = (ret.T * T_true) - Matrix33f::Identity();
+  Matrix33f T_err = (ret.T.inverse() * T_true) - Matrix33f::Identity();
   std::cout << "\n" << T_err << std::endl;
   std::cout << "\nParameter error: " << T_err.norm() << std::endl;
+
+
+  std::cout << "\nGOT:\n" << ret.T << std::endl;
+  std::cout << "\nture:\n" << T_true << std::endl;
 
   return 0;
 }

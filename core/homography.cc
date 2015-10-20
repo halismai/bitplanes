@@ -38,6 +38,7 @@ auto Homography::MatrixToParams(const Transform& H) -> ParameterVector
 {
   Transform L = H.log();
 
+  /*
   ParameterVector p;
   p[0] = L(0,2);
   p[1] = L(1,2);
@@ -45,6 +46,17 @@ auto Homography::MatrixToParams(const Transform& H) -> ParameterVector
   p[3] = -3*L(2,2)/2;
   p[4] = -1*(L(1,1) - p[3]/3);
   p[5] = L(0,1) - p[2];
+  p[6] = L(2,0);
+  p[7] = L(2,1);
+  */
+
+  ParameterVector p;
+  p[0] = L(0,2);
+  p[1] = L(1,2);
+  p[2] = -L(1,0);
+  p[3] = -3/2.0*L(2,2);
+  p[4] = L(0,0) + 1/2.0*L(2,2);
+  p[5] = L(1,0) + L(0,1);
   p[6] = L(2,0);
   p[7] = L(2,1);
 
@@ -71,6 +83,7 @@ auto Homography::ComputeJacobian(float x, float y, float Ix, float Iy,
                                  float s, float c1, float c2) -> Jacobian
 {
   Jacobian J;
+#if 0
   J <<
       Ix/s,
       Iy/s,
@@ -80,6 +93,16 @@ auto Homography::ComputeJacobian(float x, float y, float Ix, float Iy,
       -Ix*(c2 - y),
       -s*(c1 - x)*(Ix*c1 + Iy*c2 - Ix*x - Iy*y),
       -s*(c2 - y)*(Ix*c1 + Iy*c2 - Ix*x - Iy*y);
+#endif
+  J <<
+      Ix/s,
+      Iy/s,
+      Iy*(c1 - x) - Ix*(c2 - y),
+      - Ix*(c1 - x) - Iy*(c2 - y),
+      Iy*(c2 - y) - Ix*(c1 - x),
+      -Ix*(c2 - y),
+      - Ix*s*sq(c1 - x) - Iy*s*(c1 - x)*(c2 - y),
+      - Iy*s*sq(c2 - y) - Ix*s*(c1 - x)*(c2 - y);
 
   return J;
 }
@@ -88,9 +111,15 @@ auto Homography::ComputeWarpJacobian(float x, float y, float s, float c1, float 
   -> WarpJacobian
 {
   WarpJacobian Jw;
+  /*
   Jw <<
       1.0f/s, 0.0f, y - c2, x - c1, x - c1, y - c2, -s*sq(c1 - x), -s*(c1 - x)*(c2 - y),
       0.0f, 1.0f/s, c1 - x, y - c2, c2 - y, 0.0f, -s*(c1 - x)*(c2 - y), -s*sq(c2 - y);
+      */
+
+  Jw <<
+      1/s,  0, y - c2, x - c1, x - c1, y - c2, -s*sq(c1 - x), -s*(c1 - x)*(c2 - y),
+      0, 1/s, c1 - x, y - c2, c2 - y,  0, -s*(c1 - x)*(c2 - y),  -s*sq(c2 - y);
 
   return Jw;
 }

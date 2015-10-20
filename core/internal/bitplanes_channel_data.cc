@@ -39,7 +39,7 @@ ComputeWarpJacobian(const cv::Rect& roi, float s, float c1, float c2)
   typename EigenStdVector<typename M::WarpJacobian>::type ret(n_valid);
   for(int y = 0, i = 0; y < roi.height-2; ++y)
     for(int x = 0; x < roi.width-2; ++x, ++i)
-      ret[i] = M::ComputeWarpJacobian(x + 1.0f, y + 1.0f, s, c1, c2);
+      ret[i] = M::ComputeWarpJacobian(x + 0.0f, y + 0.0f, s, c1, c2);
 
   return ret;
 }
@@ -67,7 +67,7 @@ BitPlanesChannelData<M>::set(const cv::Mat& src, const cv::Rect& roi,
 
   typedef Eigen::Matrix<float,1,2> ImageGradient;
 
-#pragma omp parallel for
+//#pragma omp parallel for
   for(int y = 1; y < C.rows - 1; ++y)
   {
     const uint8_t* srow = C.ptr<const uint8_t>(y);
@@ -80,15 +80,18 @@ BitPlanesChannelData<M>::set(const cv::Mat& src, const cv::Rect& roi,
         pixel_ptr[8*ii + b] = (srow[x] & (1<<b)) >> b;
 
         float Ix =
-            static_cast<float>( (srow[x+1] & (1 << b)) >> b ) -
-            static_cast<float>( (srow[x-1] & (1 << b)) >> b ) ;
+            static_cast<float>( (srow[x+1] & (1 << b)) /*>> b*/ ) -
+            static_cast<float>( (srow[x-1] & (1 << b)) /*>> b*/ ) ;
 
         float Iy =
-            static_cast<float>(srow[x + C.cols] & (1 << b) >> b) -
-            static_cast<float>(srow[x - C.cols] & (1 << b) >> b);
+            static_cast<float>(srow[x + C.cols] & (1 << b) /*>> b*/) -
+            static_cast<float>(srow[x - C.cols] & (1 << b) /*>> b*/);
+
+        //float w = sqrt( fabs(Ix) + fabs(Iy) );
+        float w = 1.0f / (float) ( 1 << b );
 
         int jj = 8*((y-1)*_roi_stride + x - 1) + b;
-        _jacobian.row(jj) = 0.5f * ImageGradient(Ix, Iy) * Jw;
+        _jacobian.row(jj) = w * 0.5f * ImageGradient(Ix, Iy) * Jw;
       }
     }
   }

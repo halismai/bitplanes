@@ -37,6 +37,8 @@
 #include <fstream>
 #include <array>
 
+#include <Eigen/Cholesky>
+
 namespace bp {
 
 template <class M>
@@ -71,6 +73,8 @@ class BitplanesTracker
   Gradient _gradient;
   Vector_<float> _residuals;
 
+  Eigen::LDLT<Hessian> _ldlt;
+
   float linearize(const cv::Mat&, const Transform& T_init);
 
   void setNormalization(const cv::Rect&)
@@ -82,9 +86,10 @@ class BitplanesTracker
   inline void smoothImage(cv::Mat& I, const cv::Rect& roi)
   {
     cv::GaussianBlur(I(roi), I(roi), cv::Size(3,3), _alg_params.sigma);
+    //cv::GaussianBlur(I(roi), I(roi), cv::Size(), _alg_params.sigma);
   }
 
-  int _interp = cv::INTER_AREA;
+  int _interp = cv::INTER_CUBIC;
 }; // BitplanesTracker
 
 template<> void BitplanesTracker<Homography>::setNormalization(const cv::Rect& bbox)
@@ -101,6 +106,8 @@ void BitplanesTracker<M>::setTemplate(const cv::Mat& image, const cv::Rect& bbox
   setNormalization(bbox);
   _bbox = bbox;
   _cdata.set(_I0, bbox, _T(0,0), _T_inv(0,2), _T_inv(1,2));
+
+  _ldlt.compute(-_cdata.hessian());
 }
 
 template <class M> inline
@@ -141,7 +148,8 @@ Result BitplanesTracker<M>::track(const cv::Mat& image,  const Transform& T_init
   int it = 1;
   while(!has_converged && it++ < max_iters)
   {
-    const ParameterVector dp = MotionModelType::Solve(_cdata.hessian(), _gradient);
+    //const ParameterVector dp = MotionModelType::Solve(_cdata.hessian(), _gradient);
+    const ParameterVector dp = _ldlt.solve(_gradient);
     const auto sum_sq = _residuals.squaredNorm();
     {
       const auto dp_norm = dp.norm();
@@ -174,7 +182,6 @@ Result BitplanesTracker<M>::track(const cv::Mat& image,  const Transform& T_init
   if(ret.status == OptimizerStatus::NotStarted)
     ret.status = OptimizerStatus::MaxIterations;
 
-
   return ret;
 }
 
@@ -186,6 +193,7 @@ float BitplanesTracker<M>::linearize(const cv::Mat& I, const Transform& T)
 
   _gradient = _cdata.jacobian().transpose() * _residuals;
 
+  /*
   cv::Mat D;
   cv::absdiff(_I0(_bbox), _Iw, D);
   cv::imshow("D", D);
@@ -194,6 +202,7 @@ float BitplanesTracker<M>::linearize(const cv::Mat& I, const Transform& T)
   D.convertTo(D, CV_32FC1);
   float i_error = cv::sum(cv::sum(D))[0];
   Info("Intensity error %g\n", i_error);
+  */
 
   return _gradient.template lpNorm<Eigen::Infinity>();
 }
