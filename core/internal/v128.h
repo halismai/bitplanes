@@ -66,6 +66,11 @@ struct v128
   FORCE_INLINE v128 InvZero() { return v128(0xff); }
   FORCE_INLINE v128 One()     { return v128(0x01); }
 
+  FORCE_INLINE void store(const void* p) const
+  {
+    _mm_store_si128((__m128i*) p, _xmm);
+  }
+
   /**
    * stores the 16 byte values as 16 floats
    */
@@ -74,10 +79,10 @@ struct v128
     const auto t1 = _mm_unpacklo_epi8( _xmm, _mm_setzero_si128() );
     const auto t2 = _mm_unpackhi_epi8( _xmm, _mm_setzero_si128() );
 
-    _mm_store_ps(p + 0,  _mm_cvtepi32_ps( _mm_unpacklo_epi16(t1, _mm_setzero_si128()) ) );
-    _mm_store_ps(p + 4,  _mm_cvtepi32_ps( _mm_unpackhi_epi16(t1, _mm_setzero_si128()) ) );
-    _mm_store_ps(p + 8,  _mm_cvtepi32_ps( _mm_unpacklo_epi16(t2, _mm_setzero_si128()) ) );
-    _mm_store_ps(p + 12, _mm_cvtepi32_ps( _mm_unpackhi_epi16(t2, _mm_setzero_si128()) ) );
+    _mm_storeu_ps(p + 0,  _mm_cvtepi32_ps( _mm_unpacklo_epi16(t1, _mm_setzero_si128()) ) );
+    _mm_storeu_ps(p + 4,  _mm_cvtepi32_ps( _mm_unpackhi_epi16(t1, _mm_setzero_si128()) ) );
+    _mm_storeu_ps(p + 8,  _mm_cvtepi32_ps( _mm_unpacklo_epi16(t2, _mm_setzero_si128()) ) );
+    _mm_storeu_ps(p + 12, _mm_cvtepi32_ps( _mm_unpackhi_epi16(t2, _mm_setzero_si128()) ) );
   }
 
   /*
@@ -145,6 +150,11 @@ FORCE_INLINE v128 operator>>(v128 a, int i)
   return _mm_srli_epi32(a, i);
 }
 
+
+FORCE_INLINE v128 operator-(v128 a, v128 b)
+{
+  return _mm_sub_epi8(a, b);
+}
 
 #else
 #error "Need SSE2"
