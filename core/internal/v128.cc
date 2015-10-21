@@ -15,12 +15,13 @@
   along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "bitplanes/core/config.h"
 #include "bitplanes/core/internal/v128.h"
 #include <iostream>
 
 namespace bp {
 
-#if defined(BITPLANES_HAVE_SSE2)
+#if BITPLANES_HAVE_SSE2
   std::ostream& operator<<(std::ostream& os, const v128& v)
   {
     ALIGNED(16) uint8_t buf[16];

@@ -45,9 +45,11 @@ int main()
   imwarp<Homography>(I, I1, T_true, cv::Rect(0,0,I.cols,I.rows));
 
   tracker.setTemplate(I1, roi);
-  auto ret = tracker.track(I);
+  auto ret = tracker.track(I1);
   if(!alg_params.verbose)
     printf("track time %0.2f ms\n", TimeCode(100, [&]() {tracker.track(I);}));
+
+  return 0;
 
 
   std::cout << ret << std::endl;

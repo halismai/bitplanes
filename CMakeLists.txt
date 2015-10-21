@@ -75,7 +75,7 @@ endif()
 #
 # REQUIRED libraries
 #
-find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui imgcodecs)
+find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui imgcodecs features2d)
 list(APPEND MY_INCLUDE_DIRS ${OpenCV_INCLUDE_DIR})
 list(APPEND MY_LINK_DIRS    ${OpenCV_LINK_DIRECTORIES})
 list(APPEND MY_LIBRARIES    ${OpenCV_LIBS})

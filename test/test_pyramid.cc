@@ -15,6 +15,8 @@
   along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <bitplanes/core/debug.h>
+#include <bitplanes/core/homography.h>
 #include <bitplanes/core/bitplanes_tracker_pyramid.h>
 #include <bitplanes/core/viz.h>
 #include <bitplanes/utils/timer.h>
@@ -30,7 +32,7 @@
 #include <gperftools/profiler.h>
 #endif
 
-static const double SCALE = 0.5;
+static const double SCALE = -100;
 
 std::vector<cv::Mat> LoadData()
 {
@@ -59,7 +61,7 @@ int main()
 
   AlgorithmParameters params;
   params.num_levels = 3;
-  params.max_iterations = 50;
+  params.max_iterations = 100;
   params.parameter_tolerance = 5e-6;
   params.function_tolerance = 1e-4;
   params.verbose = false;

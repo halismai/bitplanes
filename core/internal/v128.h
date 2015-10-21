@@ -22,7 +22,9 @@
 #include <cstdint>
 #include <iosfwd>
 
-#if defined(BITPLANES_HAVE_SSE2)
+namespace bp {
+
+#if BITPLANES_HAVE_SSE2
 /**
  * Holds a vector of 16 bytes (128 bits)
  */
@@ -159,5 +161,7 @@ FORCE_INLINE v128 operator-(v128 a, v128 b)
 #else
 #error "Need SSE2"
 #endif
+
+}; // bp
 
 #endif // BITPLANES_CORE_INTERNAL_V128_H
