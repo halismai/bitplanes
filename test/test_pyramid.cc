@@ -36,8 +36,7 @@ static const double SCALE = -100;
 
 std::vector<cv::Mat> LoadData()
 {
-  static const char* DATA_DIR =
-      "/home/halismai/code/mclk/cvpr/code/data/tracking/bricks/zm";
+  static const char* DATA_DIR = "../data/zm/";
 
   std::vector<cv::Mat> ret(50);
   for(int i = 0; i < 50; ++i)
