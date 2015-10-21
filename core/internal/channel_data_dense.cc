@@ -22,11 +22,6 @@
 #include "bitplanes/core/affine.h"
 #include "bitplanes/utils/error.h"
 
-#if defined(BITPLANES_WITH_TBB)
-#include <tbb/parallel_for.h>
-#include <tbb/blocked_range.h>
-#endif // BITPLANES_WITH_TBB
-
 #include <cassert>
 #include <iostream>
 
