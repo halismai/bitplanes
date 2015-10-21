@@ -94,7 +94,7 @@ static inline uint8_t CensusBit(uint8_t c, int b)
 
 template <class M> void
 BitPlanesChannelData2<M>::set(const cv::Mat& src, const cv::Rect& roi,
-                              float s, float c1, float c2)
+                              float /*s*/, float /*c1*/, float /*c2*/)
 {
   THROW_ERROR_IF(roi.x < 1 || roi.x > src.cols - 1 ||
                  roi.y < 1 || roi.y > src.rows - 1,
@@ -128,8 +128,8 @@ void BitPlanesChannelData2<M>::computeResiduals(const cv::Mat& Iw,
 
   residuals.resize( 8 * ((Iw.rows-1) * (Iw.cols-1) ) );
   auto* r_ptr = residuals.data();
-  ALIGNED(16) uint8_t obuf[8][16];
-  int s = Iw.cols;
+  //ALIGNED(16) uint8_t obuf[8][16];
+  //int s = Iw.cols;
   for(int y = 1; y < Iw.rows-1; ++y)
   {
     const uint8_t* Iw_row = Iw.ptr<uint8_t>(y);
