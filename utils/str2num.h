@@ -47,7 +47,7 @@ template <typename T> inline
 bool str2num(std::string str, T& num)
 {
   std::istringstream ss(str);
-  return (ss >> num);
+  return !(ss >> num).bad();
 }
 
 }; // bp

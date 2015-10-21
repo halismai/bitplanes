@@ -22,8 +22,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-  ${CMAKE_SOURCE_DIR}/cmake
-  ${CMAKE_SOURCE_DIR}/cmake/modules)
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
+message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory")
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Config" FORCE)
@@ -45,7 +46,7 @@ set(BITPLANES_BUILD_DATE "${build_date}")
 configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
   "${PROJECT_SOURCE_DIR}/core/config.h")
 
-find_package(PkgConfig REQUIRED)
+#find_package(PkgConfig REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -std=c++11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -mfpmath=sse")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -fstrict-aliasing")
@@ -54,9 +55,9 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
 
 option(BUILD_STATIC            "Build a static library instead of shared" ON)
 option(BITPLANES_WITH_OPENMP   "Enable openmp"                            ON)
-option(BITPLANES_WITH_PROFILER "Use google profiler"                      ON)
-option(BITPLANES_WITH_TCMALLOC "Use google tcmalloc"                      ON)
-option(BITPLANES_WITH_TBB      "Use Intel TBB"                            ON)
+option(BITPLANES_WITH_PROFILER "Use google profiler"                      OFF)
+option(BITPLANES_WITH_TCMALLOC "Use google tcmalloc"                      OFF)
+option(BITPLANES_WITH_TBB      "Use Intel TBB"                            OFF)
 option(BITPLANES_WITH_TIMING   "Enabling timing the code"                 ON)
 option(BITPLANES_WITH_BOOST    "Enable boost"                            OFF)
 
@@ -76,13 +77,13 @@ endif()
 # REQUIRED libraries
 #
 find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui imgcodecs features2d)
-list(APPEND MY_INCLUDE_DIRS ${OpenCV_INCLUDE_DIR})
+list(APPEND MY_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS})
 list(APPEND MY_LINK_DIRS    ${OpenCV_LINK_DIRECTORIES})
 list(APPEND MY_LIBRARIES    ${OpenCV_LIBS})
 
-pkg_check_modules(Eigen REQUIRED eigen3)
-list(APPEND MY_INCLUDE_DIRS ${Eigen_INCLUDE_DIRS})
-
+#pkg_check_modules(Eigen REQUIRED eigen3)
+find_package(Eigen REQUIRED)
+list(APPEND MY_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS})
 
 #
 # optional stuff
