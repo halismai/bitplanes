@@ -148,6 +148,7 @@ int main()
 
   //auto t = LK(I, I);
   //std::cout << t << std::endl;
+  std::cout << LK(I, I) << std::endl;
 
   cv::Matx<float,2,3> H;
   H <<
