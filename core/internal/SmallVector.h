@@ -14,14 +14,18 @@
 //
 
 // NOTE: halismai code from (modifiedy slightly by halismai)
+//
 // and added serialization support
 // http://fahrenheit2539.blogspot.com/2012/06/introduction-in-depths-look-at.html
 //
 // Fixed swap also (need to use this->swap_impl)
+//
+// Removed dependency on boost
 
 #ifndef LLVM_ADT_SMALLVECTOR_H
 #define LLVM_ADT_SMALLVECTOR_H
 
+#include <cstddef>
 #include <utility>
 
 // This is actually the conforming implementation which works with abstract

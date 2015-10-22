@@ -26,6 +26,7 @@
 #endif // BITPLANES_HAVE_ARM
 
 #include <iosfwd>
+#include <cinttypes>
 
 namespace bp {
 
