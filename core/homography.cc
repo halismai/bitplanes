@@ -19,7 +19,7 @@
 #include <Eigen/Cholesky>
 
 #include "bitplanes/core/homography.h"
-#include "bitplanes/core/math.h"
+#include "bitplanes/core/bpmath.h"
 
 namespace bp {
 
