@@ -84,7 +84,7 @@ static inline v128 CensusSignatureSIMD(const uint8_t* p, int s)
 
 static inline void CensusSignature(const uint8_t* p, int s, uint8_t* dst)
 {
-  _mm_storeu_si128((__m128i*) dst, CensusSignatureSIMD(p, s));
+  ; //_mm_storeu_si128((__m128i*) dst, CensusSignatureSIMD(p, s));
 }
 
 static inline uint8_t CensusBit(uint8_t c, int b)
@@ -140,6 +140,7 @@ void BitPlanesChannelData2<M>::computeResiduals(const cv::Mat& Iw,
     {
       const auto iw = CensusSignatureSIMD(Iw_row + x, Iw.cols);
       const auto i0 = v128(I0_row + x);
+#if 0
       (((iw & K0x01) >> 0) - ((i0 & K0x01) >> 0)).storeFloat(r_ptr + 0);
       (((iw & K0x02) >> 1) - ((i0 & K0x02) >> 1)).storeFloat(r_ptr + 16);
       (((iw & K0x04) >> 2) - ((i0 & K0x04) >> 2)).storeFloat(r_ptr + 32);
@@ -148,6 +149,7 @@ void BitPlanesChannelData2<M>::computeResiduals(const cv::Mat& Iw,
       (((iw & K0x20) >> 5) - ((i0 & K0x20) >> 5)).storeFloat(r_ptr + 80);
       (((iw & K0x40) >> 6) - ((i0 & K0x40) >> 6)).storeFloat(r_ptr + 96);
       (((iw & K0x80) >> 7) - ((i0 & K0x80) >> 7)).storeFloat(r_ptr + 112);
+#endif
 
       /*
       const auto* p = Iw_row + x;

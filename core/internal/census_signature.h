@@ -125,7 +125,8 @@ FORCE_INLINE v128 CensusSignatureSIMD(const uint8_t* p, int s)
 
 FORCE_INLINE void CensusSignature(const uint8_t* p, int s, uint8_t* dst)
 {
-  _mm_storeu_si128((__m128i*) dst, CensusSignatureSIMD(p, s));
+  v128 c = CensusSignatureSIMD(p, s);
+  _mm_storeu_si128((__m128i*) dst, c._xmm);
 }
 
 }; // bp

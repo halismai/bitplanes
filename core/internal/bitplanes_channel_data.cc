@@ -150,6 +150,7 @@ void BitPlanesChannelData<M>::computeResiduals(const cv::Mat& Iw, Pixels& residu
       const uint8_t* p = srow + x + roi.x;
       const v128 c(p);
 
+#if 0
       _mm_store_si128((__m128i*) obuf[0],
                       ((v128(p - src_stride - 1) >= c) & K0x01) >> 0);
 
@@ -174,6 +175,7 @@ void BitPlanesChannelData<M>::computeResiduals(const cv::Mat& Iw, Pixels& residu
       _mm_store_si128((__m128i*) obuf[7],
                       ((v128(p + src_stride + 1) >= c) & K0x80) >> 7);
 
+#endif
 
       for(int j = 0; j < 16; ++j)
       {

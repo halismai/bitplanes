@@ -35,7 +35,7 @@ include(cmake/CheckC++11.cmake)
 CheckCpp11()
 
 if(NOT IOS)
-include(cmake/ConfigureSSE.cmake)
+  include(cmake/ConfigureSSE.cmake)
 endif()
 
 set(BITPLANES_VERSION_MAJOR "0")
@@ -44,9 +44,6 @@ set(BITPLANES_VERSION_PATCH "0")
 
 execute_process(COMMAND date OUTPUT_VARIABLE build_date OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(BITPLANES_BUILD_DATE "${build_date}")
-
-configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
-  "${PROJECT_SOURCE_DIR}/core/config.h")
 
 #find_package(PkgConfig REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -70,11 +67,6 @@ else()
   set(LIBRARY_TYPE SHARED)
 endif()
 
-if(BITPLANES_WITH_OPENMP)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp -lpthread")
-endif()
-
 if(IOS)
   message(STATUS "Building for IOS: ${IOS_PLATFORM}")
   unset(BITPLANES_WITH_OPENMP CACHE)
@@ -82,7 +74,29 @@ if(IOS)
   unset(BITPLANES_WITH_BOOST CACHE)
   unset(BITPLANES_WITH_TBB CACHE)
   unset(BITPLANES_WITH_PROFILER CACHE)
+
+  set(OpenCV_DIR "/usr/local/opt/opencv3/share/OpenCV/")
+
+  if(IOS_PLATFORM STREQUAL "OS")
+    message(STATUS "Enabling NEON")
+    set(BITPLANES_HAVE_ARM 1)
+  else()
+    set(BITPLANES_HAVE_SSE2 1)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+  endif()
+else()
+  set(BITPLANES_HAVE_ARM 0)
 endif()
+
+if(BITPLANES_WITH_OPENMP)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp -lpthread")
+endif()
+
+
+configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
+  "${PROJECT_SOURCE_DIR}/core/config.h")
+
 
 #
 # REQUIRED libraries
@@ -168,5 +182,8 @@ link_directories(${MY_LINK_DIRS})
 
 add_subdirectory(utils)
 add_subdirectory(core)
-add_subdirectory(test)
+
+if(NOT IOS)
+  add_subdirectory(test)
+endif()
 

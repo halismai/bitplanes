@@ -19,12 +19,16 @@
 #define BITPLANES_CORE_INTERNAL_V128_H
 
 #include "bitplanes/core/internal/intrin.h"
-#include <cstdint>
+#include "bitplanes/core/config.h"
+
+#if BITPLANES_HAVE_ARM
+#include "bitplanes/core/internal/sse_to_neon.hpp"
+#endif // BITPLANES_HAVE_ARM
+
 #include <iosfwd>
 
 namespace bp {
 
-#if BITPLANES_HAVE_SSE2
 /**
  * Holds a vector of 16 bytes (128 bits)
  */
@@ -47,13 +51,13 @@ struct v128
 
   FORCE_INLINE const v128& load(const uint8_t* p)
   {
-    _xmm = _mm_load_si128((const __m128i*) p);
+    _xmm = _mm_load_si128(( __m128i*) p);
     return *this;
   }
 
   FORCE_INLINE const v128& loadu(const uint8_t* p)
   {
-    _xmm = _mm_loadu_si128((const __m128i*) p);
+    _xmm = _mm_loadu_si128((__m128i*) p);
     return *this;
   }
 
@@ -63,6 +67,7 @@ struct v128
   FORCE_INLINE v128(int n) : _xmm(_mm_set1_epi8(n)) {}
 
   FORCE_INLINE operator __m128i() const { return _xmm; }
+  //FORCE_INLINE operator const __m128i&() const { return _xmm; }
 
   FORCE_INLINE v128 Zero()    { return _mm_setzero_si128(); }
   FORCE_INLINE v128 InvZero() { return v128(0xff); }
@@ -76,6 +81,7 @@ struct v128
   /**
    * stores the 16 byte values as 16 floats
    */
+  /*
   FORCE_INLINE void storeFloat(float* p) const
   {
     const auto t1 = _mm_unpacklo_epi8( _xmm, _mm_setzero_si128() );
@@ -86,6 +92,7 @@ struct v128
     _mm_storeu_ps(p + 8,  _mm_cvtepi32_ps( _mm_unpacklo_epi16(t2, _mm_setzero_si128()) ) );
     _mm_storeu_ps(p + 12, _mm_cvtepi32_ps( _mm_unpackhi_epi16(t2, _mm_setzero_si128()) ) );
   }
+  */
 
   /*
   FORCE_INLINE void storeFloatSign(float* p, v128 sign_mask)
@@ -147,20 +154,25 @@ FORCE_INLINE v128 operator^(v128 a, v128 b)
   return _mm_xor_si128(a, b);
 }
 
-FORCE_INLINE v128 operator>>(v128 a, int i)
+/*
+FORCE_INLINE v128 operator>>(v128 a, const int i)
 {
   return _mm_srli_epi32(a, i);
 }
+*/
+template <int imm> FORCE_INLINE v128 SHIFT_RIGHT(v128 a)
+{
+  return _mm_srli_epi32(a, imm);
+}
 
 
+/*
 FORCE_INLINE v128 operator-(v128 a, v128 b)
 {
   return _mm_sub_epi8(a, b);
 }
+*/
 
-#else
-#error "Need SSE2"
-#endif
 
 }; // bp
 
