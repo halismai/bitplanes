@@ -34,7 +34,9 @@ project(bitplanes CXX)
 include(cmake/CheckC++11.cmake)
 CheckCpp11()
 
-include(cmake/ConfigureSSE.cmake)
+if(NOT IOS)
+  include(cmake/ConfigureSSE.cmake)
+endif()
 
 set(BITPLANES_VERSION_MAJOR "0")
 set(BITPLANES_VERSION_MINOR "2")
@@ -43,12 +45,9 @@ set(BITPLANES_VERSION_PATCH "0")
 execute_process(COMMAND date OUTPUT_VARIABLE build_date OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(BITPLANES_BUILD_DATE "${build_date}")
 
-configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
-  "${PROJECT_SOURCE_DIR}/core/config.h")
-
 #find_package(PkgConfig REQUIRED)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -std=c++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -mfpmath=sse")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -fstrict-aliasing")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=auto")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
@@ -68,10 +67,36 @@ else()
   set(LIBRARY_TYPE SHARED)
 endif()
 
+if(IOS)
+  message(STATUS "Building for IOS: ${IOS_PLATFORM}")
+  unset(BITPLANES_WITH_OPENMP CACHE)
+  unset(BITPLANES_WITH_TCMALLOC CACHE)
+  unset(BITPLANES_WITH_BOOST CACHE)
+  unset(BITPLANES_WITH_TBB CACHE)
+  unset(BITPLANES_WITH_PROFILER CACHE)
+
+  set(OpenCV_DIR "/usr/local/opt/opencv3/share/OpenCV/")
+
+  if(IOS_PLATFORM STREQUAL "OS")
+    message(STATUS "Enabling NEON")
+    set(BITPLANES_HAVE_ARM 1)
+  else()
+    set(BITPLANES_HAVE_SSE2 1)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+  endif()
+else()
+  set(BITPLANES_HAVE_ARM 0)
+endif()
+
 if(BITPLANES_WITH_OPENMP)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp -lpthread")
 endif()
+
+
+configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
+  "${PROJECT_SOURCE_DIR}/core/config.h")
+
 
 #
 # REQUIRED libraries
@@ -83,6 +108,9 @@ list(APPEND MY_LIBRARIES    ${OpenCV_LIBS})
 
 #pkg_check_modules(Eigen REQUIRED eigen3)
 find_package(Eigen REQUIRED)
+if(EIGEN_VERSION VERSION_LESS 3.2.0)
+  message(FATAL_ERROR "bitplanes requires Eigen version >= 3.2.0")
+endif()
 list(APPEND MY_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS})
 
 #
@@ -154,5 +182,8 @@ link_directories(${MY_LINK_DIRS})
 
 add_subdirectory(utils)
 add_subdirectory(core)
-add_subdirectory(test)
+
+if(NOT IOS)
+  add_subdirectory(test)
+endif()
 

@@ -7,7 +7,7 @@ macro(SetSSEDefs InstName)
     set(BITPLANES_HAVE_${InstName} 1)
     set(SSE_FLAGS "${SSE_FLAGS} ${${InstName}_FLAGS}")
   else()
-    set(DIVO_HAVE_${InstName} 0)
+    set(BITPLANES_HAVE_${InstName} 0)
   endif()
 endmacro()
 

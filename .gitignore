@@ -128,3 +128,6 @@ docs/_build/
 # PyBuilder
 target/
 
+.DS_*
+
+build/

@@ -15,27 +15,15 @@
   along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "bitplanes/core/config.h"
-#include "bitplanes/core/internal/v128.h"
-#include <iostream>
+#ifndef BITPLANES_CORE_INTERNAL_V128_SSE_H
+#define BITPLANES_CORE_INTERNAL_V128_SSE_H
+
+#include <cstdint>
+#include <iosfwd>
 
 namespace bp {
 
-#if BITPLANES_HAVE_SSE2
-  std::ostream& operator<<(std::ostream& os, const v128& v)
-  {
-    ALIGNED(16) uint8_t buf[16];
-    _mm_store_si128((__m128i*) buf, v);
 
-    for(int i = 0; i < 16; ++i)
-      os << static_cast<int>( buf[i] ) << " ";
-    return os;
-  }
-#elif BITPLANES_HAVE_ARM
-  std::ostream& operator<<(std::ostream& os, const v128&)
-  {
-    return os;
-  }
-#endif
+}; // bp
 
-}
+#endif // BITPLANES_CORE_INTERNAL_V128_SSE_H
