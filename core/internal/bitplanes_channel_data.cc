@@ -19,6 +19,7 @@
 #include "bitplanes/core/internal/intrin.h"
 #include "bitplanes/core/internal/v128.h"
 #include "bitplanes/core/internal/census.h"
+#include "bitplanes/core/internal/ct.h"
 #include "bitplanes/core/homography.h"
 #include "bitplanes/core/debug.h"
 #include "bitplanes/utils/error.h"
@@ -63,7 +64,8 @@ BitPlanesChannelData<M>::set(const cv::Mat& src, const cv::Rect& roi,
   _jacobian.resize(n_valid * 8, M::DOF);
 
   cv::Mat C;
-  simd::CensusTransform2(src, roi, C);
+  //simd::CensusTransform2(src, roi, C);
+  simd::census(src, roi, C);
 
 
   _roi_stride = roi.width - 2;
@@ -115,31 +117,14 @@ static const __m128i K0x80 = _mm_set1_epi8(0x80);
 template <class M>
 void BitPlanesChannelData<M>::computeResiduals(const cv::Mat& Iw, Pixels& residuals) const
 {
+  simd::census_residual(Iw, _pixels, residuals);
+#if 0
   residuals.resize(_pixels.size());
   const auto* pixels_ptr = _pixels.data();
   float* residuals_ptr = residuals.data();
 
-#if 0
-  cv::Mat C;
-  simd::CensusTransform2(Iw, cv::Rect(1,1,Iw.cols-1,Iw.rows-1), C);
-
-  for(int y = 0; y < C.rows - 1; ++y)
-  {
-    const uint8_t* srow = C.ptr<const uint8_t>(y);
-    for(int x = 0; x < C.cols - 1; ++x)
-    {
-      int ii = y*_roi_stride + x;
-      for(int b = 0; b < 8; ++b)
-      {
-        int jj = 8*ii + b;
-        residuals_ptr[jj] = ((srow[x] & (1<<b)) >> b) - pixels_ptr[jj];
-      }
-    }
-  }
-#else
   int src_stride = Iw.cols;
   cv::Rect roi(1, 1, Iw.cols-1, Iw.rows-1);
-  //v128 buf[8];
   ALIGNED(16) uint8_t obuf[8][16];
   for(int y = 0; y < roi.height - 1; ++y)
   {
@@ -151,7 +136,6 @@ void BitPlanesChannelData<M>::computeResiduals(const cv::Mat& Iw, Pixels& residu
       const uint8_t* p = srow + x + roi.x;
       const v128 c(p);
 
-#if 1
       _mm_store_si128((__m128i*) obuf[0],
                       ((v128(p - src_stride - 1) >= c) & K0x01) >> 0);
 
@@ -175,8 +159,6 @@ void BitPlanesChannelData<M>::computeResiduals(const cv::Mat& Iw, Pixels& residu
 
       _mm_store_si128((__m128i*) obuf[7],
                       ((v128(p + src_stride + 1) >= c) & K0x80) >> 7);
-
-#endif
 
       for(int j = 0; j < 16; ++j)
       {
@@ -207,7 +189,6 @@ void BitPlanesChannelData<M>::computeResiduals(const cv::Mat& Iw, Pixels& residu
     }
   }
 #endif
-
 }
 
 template class BitPlanesChannelData<Homography>;
