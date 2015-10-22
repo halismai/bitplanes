@@ -38,11 +38,15 @@ make -j8
 cd ../
 
 mkdir -p lib
-lipo -create \
-  os/bin/libbitplanes_core.a os/bin/libbitplanes_utils.a \
-  simulator/bin/libbitplanes_core.a simulator/bin/libbitplanes_utils.a \
-  simulator64/bin/libbitplanes_core.a simulator64/bin/libbitplanes_utils.a \
-  -output libbitplanes-universal.a
+lipo -create                            \
+  os/bin/libbitplanes_core.a            \
+  simulator/bin/libbitplanes_core.a     \
+  simulator64/bin/libbitplanes_core.a   \
+  -output libbitplanes_core-universal.a
 
-
+lipo -create                            \
+  os/bin/libbitplanes_utils.a           \
+  simulator/bin/libbitplanes_utils.a    \
+  simulator64/bin/libbitplanes_utils.a  \
+  -output libbitplanes_utils-universal.a
 
