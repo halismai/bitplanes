@@ -19,7 +19,7 @@
 #define BITPLANES_CORE_BITPLANES_TRACKER_PYRAMID_H
 
 #include <bitplanes/core/bitplanes_tracker.h>
-#include <bitplanes/core/bitplanes_tracker_sparse.h>
+//#include <bitplanes/core/bitplanes_tracker_sparse.h>
 #include <vector>
 #include <iostream>
 
@@ -29,7 +29,6 @@ template <class M>
 class BitPlanesTrackerPyramid
 {
   typedef BitplanesTracker<M> Tracker;
-  //typedef BitplanesTrackerSparse<M> Tracker;
 
  public:
   typedef typename Tracker::Transform Transform;

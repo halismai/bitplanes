@@ -30,8 +30,8 @@ static inline
 AlgorithmParameters ReduceAlgorithmParameters(AlgorithmParameters p)
 {
   p.max_iterations = 25;
-  p.parameter_tolerance /= 10;
-  p.function_tolerance  /= 10;
+  p.parameter_tolerance *= 10;
+  p.function_tolerance  *= 10;
   p.sigma = 0.8;
 
   return p;

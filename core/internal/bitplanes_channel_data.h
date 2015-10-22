@@ -53,6 +53,7 @@ class BitPlanesChannelData
   Hessian _hessian;
   int _roi_stride;
 }; // BitPlanesChannelData
+
 }; // bp
 
 #endif // BITPLANES_INTERNAL_CHANNEL_DATA_H

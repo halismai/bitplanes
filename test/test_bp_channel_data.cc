@@ -19,8 +19,6 @@ int main()
   std::cout << roi << std::endl;
   cdata.set(I, roi);
 
-  return 0;
-
   auto t_ms = bp::TimeCode(10, [&]() { cdata.set(I,roi); });
   printf("time %0.2f ms\n", t_ms);
 

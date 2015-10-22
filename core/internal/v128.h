@@ -155,17 +155,15 @@ FORCE_INLINE v128 operator^(v128 a, v128 b)
   return _mm_xor_si128(a, b);
 }
 
-/*
 FORCE_INLINE v128 operator>>(v128 a, const int i)
 {
   return _mm_srli_epi32(a, i);
 }
-*/
+
 template <int imm> FORCE_INLINE v128 SHIFT_RIGHT(v128 a)
 {
   return _mm_srli_epi32(a, imm);
 }
-
 
 /*
 FORCE_INLINE v128 operator-(v128 a, v128 b)
@@ -174,7 +172,7 @@ FORCE_INLINE v128 operator-(v128 a, v128 b)
 }
 */
 
-
 }; // bp
 
 #endif // BITPLANES_CORE_INTERNAL_V128_H
+

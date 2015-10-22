@@ -27,8 +27,11 @@
 #define NO_INLINE           __attribute__((noinline))
 #define ALIGNED(...)        __attribute__((aligned(__VA_ARGS__)))
 
+#define HIDDEN __attribute__((visibility("hidden")))
+
 #define likely(expr)        __builtin_expect((expr),true)
 #define unlikey(expr)       __builtin_expect((expr),false)
+
 
 #define ANSI_COLOR_BLACK            0
 #define ANSI_COLOR_RED              1
