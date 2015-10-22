@@ -11,8 +11,6 @@
 
 int main()
 {
-  //Eigen::initParallel();
-  //std::cout << "num threads: " << Eigen::nbThreads() << std::endl;
   cv::Mat I = cv::imread("/home/halismai/lena.png", cv::IMREAD_GRAYSCALE);
   cv::Rect roi(80, 50, 320, 240);
 
@@ -40,4 +38,5 @@ int main()
 
   return 0;
 }
+
 
