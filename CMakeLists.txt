@@ -34,7 +34,9 @@ project(bitplanes CXX)
 include(cmake/CheckC++11.cmake)
 CheckCpp11()
 
+if(NOT IOS)
 include(cmake/ConfigureSSE.cmake)
+endif()
 
 set(BITPLANES_VERSION_MAJOR "0")
 set(BITPLANES_VERSION_MINOR "2")
@@ -47,8 +49,8 @@ configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
   "${PROJECT_SOURCE_DIR}/core/config.h")
 
 #find_package(PkgConfig REQUIRED)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -std=c++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -mfpmath=sse")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -fstrict-aliasing")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=auto")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
@@ -73,6 +75,15 @@ if(BITPLANES_WITH_OPENMP)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp -lpthread")
 endif()
 
+if(IOS)
+  message(STATUS "Building for IOS: ${IOS_PLATFORM}")
+  unset(BITPLANES_WITH_OPENMP CACHE)
+  unset(BITPLANES_WITH_TCMALLOC CACHE)
+  unset(BITPLANES_WITH_BOOST CACHE)
+  unset(BITPLANES_WITH_TBB CACHE)
+  unset(BITPLANES_WITH_PROFILER CACHE)
+endif()
+
 #
 # REQUIRED libraries
 #
@@ -83,6 +94,9 @@ list(APPEND MY_LIBRARIES    ${OpenCV_LIBS})
 
 #pkg_check_modules(Eigen REQUIRED eigen3)
 find_package(Eigen REQUIRED)
+if(EIGEN_VERSION VERSION_LESS 3.2.0)
+  message(FATAL_ERROR "bitplanes requires Eigen version >= 3.2.0")
+endif()
 list(APPEND MY_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS})
 
 #

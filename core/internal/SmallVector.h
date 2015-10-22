@@ -128,7 +128,7 @@ struct conditional<false, T, F> { typedef F type; };
 #include <cassert>
 #include <cstring>
 #include <memory>
-#include <boost/utility.hpp>
+//#include <boost/utility.hpp>
 
 namespace llvm {
 
@@ -860,7 +860,8 @@ struct SizeTest
 // Specialization for the case when FirstEl reserves enough memory and
 //  no additional buffers are needed
 template <typename T, size_t N>
-class SmallVector<T, N, typename boost::enable_if_c<SizeTest<T, N>::result >::type > : public SmallVectorImpl<T> {
+//class SmallVector<T, N, typename boost::enable_if_c<SizeTest<T, N>::result >::type > : public SmallVectorImpl<T> {
+class SmallVector<T, N, typename std::enable_if<SizeTest<T, N>::result >::type > : public SmallVectorImpl<T> {
 
   /// InlineElts - These are 'N-1' elements that are stored inline in the body
   /// of the vector.  The extra '1' element is stored in SmallVectorImpl.
@@ -919,7 +920,8 @@ void SmallVector<T,N,Enable>::swap(SmallVector &RHS)
 
 
 template <typename T, size_t N>
-void SmallVector<T, N, typename boost::enable_if_c< SizeTest<T, N>::result >::type >::swap(SmallVector &RHS)
+//void SmallVector<T, N, typename boost::enable_if_c< SizeTest<T, N>::result >::type >::swap(SmallVector &RHS)
+void SmallVector<T, N, typename std::enable_if< SizeTest<T, N>::result >::type >::swap(SmallVector &RHS)
 {
   this->swap_impl(RHS, 1);
 }
