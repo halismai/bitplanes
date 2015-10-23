@@ -22,7 +22,6 @@
 #include "bitplanes/core/types.h"
 #include "bitplanes/core/algorithm_parameters.h"
 #include "bitplanes/core/motion_model.h"
-#include "bitplanes/core/internal/bitplanes_channel_data.h"
 #include "bitplanes/core/internal/bitplanes_channel_data_packed.h"
 #include <opencv2/core.hpp>
 
