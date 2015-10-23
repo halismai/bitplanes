@@ -1,4 +1,5 @@
 #include "bitplanes/core/internal/bitplanes_channel_data.h"
+#include "bitplanes/core/internal/bitplanes_channel_data_packed.h"
 #include "bitplanes/core/homography.h"
 #include "bitplanes/utils/timer.h"
 
@@ -14,10 +15,12 @@ int main()
   cv::Mat I = cv::imread("/home/halismai/lena.png", cv::IMREAD_GRAYSCALE);
   cv::Rect roi(80, 50, 320, 240);
 
-  bp::BitPlanesChannelData<bp::Homography> cdata;
+  bp::BitPlanesChannelDataPacked<bp::Homography> cdata;
 
   std::cout << roi << std::endl;
   cdata.set(I, roi);
+
+  printf("set is done\n");
 
   auto t_ms = bp::TimeCode(10, [&]() { cdata.set(I,roi); });
   printf("time %0.2f ms\n", t_ms);

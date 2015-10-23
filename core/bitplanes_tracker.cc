@@ -31,7 +31,7 @@ namespace bp {
 template <class M>
 BitplanesTracker<M>::BitplanesTracker(AlgorithmParameters p)
   : _alg_params(p), _T(Matrix33f::Identity()), _T_inv(Matrix33f::Identity())
-  , _interp(cv::INTER_AREA) {}
+  , _interp(cv::INTER_LINEAR) {}
 
 template <class M>
 void BitplanesTracker<M>::setTemplate(const cv::Mat& image, const cv::Rect& bbox)

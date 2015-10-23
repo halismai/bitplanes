@@ -44,6 +44,10 @@ void census(const cv::Mat& src, const cv::Rect& roi, cv::Mat& dst);
 void census_residual(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
                      Vector_<float>& residuals);
 
+void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
+                            Vector_<float>& residuals);
+
+
 }; // simd
 }; // bp
 

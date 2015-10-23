@@ -118,6 +118,46 @@ void census_residual(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
   }
 }
 
+void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
+                            Vector_<float>& residuals)
+{
+  THROW_ERROR_IF( Iw.type() != CV_8UC1, "image must CV_8UC1" );
+  THROW_ERROR_IF( !Iw.isContinuous(), "image must continuous");
+
+  const auto* c0_ptr = c0.data();
+  const int src_stride = Iw.cols;
+
+  residuals.resize(8 * c0.size());
+  auto* r_ptr = residuals.data();
+
+  for(int y = 1; y < Iw.rows - 1; ++y)
+  {
+    const uint8_t* srow = Iw.ptr<const uint8_t>(y);
+
+    int x = 1;
+
+#if HAVE_SSE2
+#endif
+
+#if HAVE_NEON
+#endif
+
+    for( ; x < Iw.cols - 1; ++x)
+    {
+      const uint8_t* p = srow + x;
+      const uint8_t c = *c0_ptr++;
+      *r_ptr++ = (*(p - src_stride - 1) >= *p) - ((c & (1<<0)) >> 0);
+      *r_ptr++ = (*(p - src_stride    ) >= *p) - ((c & (1<<1)) >> 1);
+      *r_ptr++ = (*(p - src_stride + 1) >= *p) - ((c & (1<<2)) >> 2);
+      *r_ptr++ = (*(p              - 1) >= *p) - ((c & (1<<3)) >> 3);
+      *r_ptr++ = (*(p              + 1) >= *p) - ((c & (1<<4)) >> 4);
+      *r_ptr++ = (*(p + src_stride - 1) >= *p) - ((c & (1<<5)) >> 5);
+      *r_ptr++ = (*(p + src_stride    ) >= *p) - ((c & (1<<6)) >> 6);
+      *r_ptr++ = (*(p + src_stride + 1) >= *p) - ((c & (1<<7)) >> 7);
+    }
+  }
+}
+
 }; // simd
 }; // bp
 

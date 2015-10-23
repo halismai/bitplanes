@@ -32,7 +32,7 @@
 #include <gperftools/profiler.h>
 #endif
 
-static const double SCALE = -100;
+static const double SCALE = 0.25;
 
 std::vector<cv::Mat> LoadData()
 {
@@ -58,10 +58,13 @@ int main()
 {
   const auto images = LoadData();
 
+  //cv::setNumThreads(0);
+  //cv::setUseOptimized(0);
+
   AlgorithmParameters params;
-  params.num_levels = 3;
-  params.max_iterations = 100;
-  params.parameter_tolerance = 5e-6;
+  params.num_levels = 2;
+  params.max_iterations = 50;
+  params.parameter_tolerance = 1e-5;
   params.function_tolerance = 1e-4;
   params.verbose = false;
 
