@@ -28,10 +28,11 @@ template <class PointVector> inline
 Eigen::Matrix<float,3,3> FitHomography(const PointVector& X1, const PointVector& X2)
 {
   THROW_ERROR_IF( X1.size() != X2.size(), "size mismatch" );
+
   Eigen::Matrix<float, Eigen::Dynamic, 9> A(3*X1.size(), 9);
   Eigen::Matrix<float,1,3> a, b;
-  Eigen::Matrix<float,1,3> O;
-  O.setZero();
+  Eigen::Matrix<float,1,3> O(0,0,0);
+
   for(size_t i = 0; i < X1.size(); ++i)
   {
     const auto& x1 = X1[i];
@@ -125,5 +126,4 @@ auto RansacHomography::findInliers(const Result& H, float t) const -> Indices
 }
 
 }
-
 
