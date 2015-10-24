@@ -19,7 +19,6 @@
 #define BITPLANES_CORE_BITPLANES_TRACKER_PYRAMID_H
 
 #include <bitplanes/core/bitplanes_tracker.h>
-//#include <bitplanes/core/bitplanes_tracker_sparse.h>
 #include <vector>
 #include <iostream>
 

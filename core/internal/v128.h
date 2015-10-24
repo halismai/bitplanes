@@ -155,10 +155,12 @@ FORCE_INLINE v128 operator^(v128 a, v128 b)
   return _mm_xor_si128(a, b);
 }
 
+#if 0
 FORCE_INLINE v128 operator>>(v128 a, const int i)
 {
   return _mm_srli_epi32(a, i);
 }
+#endif
 
 template <int imm> FORCE_INLINE v128 SHIFT_RIGHT(v128 a)
 {
