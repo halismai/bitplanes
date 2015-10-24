@@ -32,7 +32,7 @@
 #include <gperftools/profiler.h>
 #endif
 
-static const double SCALE = 0.25;
+static const double SCALE = -100;
 
 std::vector<cv::Mat> LoadData()
 {
@@ -62,7 +62,7 @@ int main()
   //cv::setUseOptimized(0);
 
   AlgorithmParameters params;
-  params.num_levels = 2;
+  params.num_levels = 3;
   params.max_iterations = 50;
   params.parameter_tolerance = 1e-5;
   params.function_tolerance = 1e-4;
@@ -94,7 +94,7 @@ int main()
 
     DrawTrackingResult(dimg, images[i], bbox, H.data());
     cv::imshow("bitplanes", dimg);
-    int k = 0xff & cv::waitKey(2);
+    int k = 0xff & cv::waitKey(0);
     if(k == 'q')
       break;
   }
