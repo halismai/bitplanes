@@ -48,6 +48,8 @@ class Ransac
 
   /* desired probability of selecting at least one outlier-free sample */
   float _p=0.99;
+
+  bool _verbose = true;
 }; // Ransac
 
 template <class Array> static inline
@@ -103,10 +105,12 @@ auto Ransac<M>::fit(int max_iters) -> Result
   size_t trialcount = 0;
   while(N > trialcount && trialcount++ < maxTrials)
   {
-    //printf("%zu/%zu N:%zu\n", trialcount, maxTrials, N);
-
     result = _model.run(RandomSample<MinSampleSize>(_model.size(), gen));
     _inliers = _model.findInliers(result, _inlier_threshold);
+
+    if(_verbose)
+      printf("%zu/%zu N:%zu [%zu inliers]\n", trialcount, maxTrials, N, _inliers.size());
+
     if((int) _inliers.size() > best_num_inliers)
     {
       best_num_inliers = (int) _inliers.size();

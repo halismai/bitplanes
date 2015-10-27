@@ -101,7 +101,7 @@ configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
 #
 # REQUIRED libraries
 #
-find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui imgcodecs features2d)
+find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui imgcodecs features2d calib3d)
 list(APPEND MY_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS})
 list(APPEND MY_LINK_DIRS    ${OpenCV_LINK_DIRECTORIES})
 list(APPEND MY_LIBRARIES    ${OpenCV_LIBS})

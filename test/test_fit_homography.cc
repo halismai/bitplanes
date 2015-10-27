@@ -16,7 +16,7 @@ int main()
 {
   typedef bp::EigenStdVector<Eigen::Vector3f>::type PointVector;
 
-  const int N = 500;
+  const int N = 4;
   PointVector x1(N), x2(N);
 
   for(int it = 0; it < 50; ++it)

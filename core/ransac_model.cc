@@ -58,8 +58,7 @@ template <class PointVector, class Indices> static inline
 void CopyCorrespondences(const typename RansacHomography::CorrespondencesType& corrs,
                          const Indices& inds, PointVector& x1, PointVector& x2)
 {
-  const size_t N = x1.size();
-
+  const size_t N = inds.size();
   THROW_ERROR_IF( N > corrs.size(), "indices.size() > correspondences.size()");
 
   x1.resize(N);
@@ -107,9 +106,7 @@ auto RansacHomography::findInliers(const Result& H, float t) const -> Indices
 
   auto Normalize = [=](const Eigen::Matrix<float, 3, 1>& x)
   {
-    Eigen::Matrix<float,3,1> ret(x);
-    ret /= x[2];
-    return ret;
+    return Eigen::Matrix<float,3,1>(x / x[2]);
   };
 
   const Result H_inv = H.inverse();
@@ -118,6 +115,7 @@ auto RansacHomography::findInliers(const Result& H, float t) const -> Indices
     float d =
         (Normalize(_corrs[i].x1) - Normalize(H_inv*_corrs[i].x2)).squaredNorm() +
         (Normalize(_corrs[i].x2) - Normalize(H*_corrs[i].x1)).squaredNorm();
+    printf("%f %f\n", d, t);
     if(d < t)
       ret.push_back(i);
   }
