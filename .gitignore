@@ -131,3 +131,6 @@ target/
 .DS_*
 
 build/
+
+core/config.h
+
