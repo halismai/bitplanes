@@ -94,7 +94,7 @@ int main()
 
     DrawTrackingResult(dimg, images[i], bbox, H.data());
     cv::imshow("bitplanes", dimg);
-    int k = 0xff & cv::waitKey(0);
+    int k = 0xff & cv::waitKey(5);
     if(k == 'q')
       break;
   }
