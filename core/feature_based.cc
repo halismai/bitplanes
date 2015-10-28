@@ -18,24 +18,49 @@
 #include <Eigen/Core>
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/calib3d.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "bitplanes/core/feature_based.h"
 #include "bitplanes/utils/error.h"
 
+#include <iostream>
+
 namespace bp {
 
+
 FeatureBasedPlaneTracker::
-FeatureBasedPlaneTracker(UniquePointer<cv::Feature2D> f,
-                         UniquePointer<cv::DescriptorMatcher> m, Config conf)
-    : _features(std::move(f)), _matcher(std::move(m)), _config(conf) {}
+FeatureBasedPlaneTracker(cv::Ptr<cv::Feature2D>& f, cv::Ptr<cv::DescriptorMatcher>& m, Config conf)
+    : _features(f), _matcher(m), _config(conf) {}
+
+FeatureBasedPlaneTracker::~FeatureBasedPlaneTracker() {}
 
 static inline cv::Mat make_mask(const cv::Size& image_size, const cv::Rect& bbox)
 {
   cv::Mat ret(image_size, CV_8UC1);
   ret.setTo( cv::Scalar(0) );
   ret(bbox).setTo(cv::Scalar(255));
+
   return ret;
 }
+
+static inline
+void DetectFeatures(const cv::Mat& image, const cv::Rect& bbox,
+                    cv::Ptr<cv::FeatureDetector>& detector,
+                    std::vector<cv::KeyPoint>& keypoints)
+{
+  detector->detect(image, keypoints, make_mask(image.size(), bbox));
+  cv::KeyPointsFilter::removeDuplicated(keypoints);
+
+  /*
+  auto criteria = cv::TermCriteria(cv::TermCriteria::EPS +
+                                   cv::TermCriteria::MAX_ITER,
+                                   40,
+                                   0.001);
+  cv::cornerSubPix(image, keypoints, cv::Size(3,3), cv::Size(-1,-1), criteria);
+  */
+}
+
 
 void FeatureBasedPlaneTracker::setTemplate(const cv::Mat& image, const cv::Rect& bbox)
 {
@@ -43,10 +68,26 @@ void FeatureBasedPlaneTracker::setTemplate(const cv::Mat& image, const cv::Rect&
                   bbox.y < 1 || bbox. y > image.rows - 2,
                   "bounding box is out of image boundaries" );
 
+
   _bbox = bbox;
+
+  /*
   _features->detectAndCompute(image, make_mask(image.size(), bbox), _keypoints,
                               _descriptors, false);
+  _features->compute(image, _keypoints, _descriptors);*/
+
+  DetectFeatures(image, bbox, _features, _keypoints);
+  _features->compute(image, _keypoints, _descriptors);
   _matcher->add(_descriptors);
+
+  {
+    cv::Mat D;
+    cv::drawKeypoints(image, _keypoints, D);
+    cv::imshow("D", D);
+    printf("got %zu points\n", _keypoints.size());
+    cv::waitKey(0);
+    cv::destroyWindow("D");
+  }
 }
 
 static inline cv::Rect make_bigger_box(cv::Size image_size, cv::Rect src, int buff)
@@ -66,9 +107,28 @@ Result FeatureBasedPlaneTracker::track(const cv::Mat& image)
   cv::Mat descriptors;
 
   auto bbox = make_bigger_box(image.size(), _bbox, 200);
+  //_features->detect(image, keypoints, make_mask(image.size(), bbox));
+  //cv::KeyPointsFilter::removeDuplicated(keypoints);
+  //cv::KeyPointsFilter::retainBest(keypoints, 0.8 * keypoints.size());
+  DetectFeatures(image, bbox, _features, keypoints);
+  _features->compute(image, keypoints, descriptors);
 
+  {
+    /*
+    cv::Mat D;
+    cv::drawKeypoints(image, keypoints, D);
+    cv::imshow("D", D);
+    printf("got %zu points\n", keypoints.size());
+    cv::waitKey(0);
+    cv::destroyWindow("D");
+    */
+  }
+
+
+  /*
   _features->detectAndCompute(image, make_mask(image.size(), bbox),
                               keypoints, descriptors, false);
+                              */
 
   std::vector<cv::DMatch> matches;
   _matcher->match(descriptors, matches);
@@ -80,15 +140,15 @@ Result FeatureBasedPlaneTracker::track(const cv::Mat& image)
   for(const auto& m : matches)
   {
     x1.push_back( _keypoints[m.trainIdx].pt );
-    x2.push_back( keypoints[m.queryIdx].pt );
+    x2.push_back(  keypoints[m.queryIdx].pt );
   }
 
-  cv::Mat H;
-  cv::findHomography(x1, x2, cv::RANSAC, _config.ransac_reproj_threshold,
-                     cv::noArray(), _config.ransac_max_iters);
+  cv::Mat H = cv::findHomography(x1, x2, cv::RANSAC, _config.ransac_reproj_threshold,
+                                 cv::noArray(), _config.ransac_max_iters);
 
   bp::Matrix33f H_ret;
   cv::cv2eigen(H, H_ret);
+
   return Result(H_ret);
 }
 

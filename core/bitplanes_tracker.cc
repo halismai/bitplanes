@@ -13,7 +13,7 @@
 
    You should have received a copy of the Lesser GNU General Public License
    along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
-   */
+*/
 
 #include "bitplanes/core/bitplanes_tracker.h"
 #include "bitplanes/core/internal/normalization.h"
@@ -31,7 +31,7 @@ namespace bp {
 template <class M>
 BitplanesTracker<M>::BitplanesTracker(AlgorithmParameters p)
   : _alg_params(p), _T(Matrix33f::Identity()), _T_inv(Matrix33f::Identity())
-  , _interp(cv::INTER_LINEAR) {}
+  , _interp(cv::INTER_CUBIC) {}
 
 template <class M>
 void BitplanesTracker<M>::setTemplate(const cv::Mat& image, const cv::Rect& bbox)

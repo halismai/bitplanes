@@ -42,8 +42,7 @@ class FeatureBasedPlaneTracker
   typedef bp::Matrix33f Transform;
 
  public:
-  FeatureBasedPlaneTracker(UniquePointer<cv::Feature2D>,
-                           UniquePointer<cv::DescriptorMatcher>,
+  FeatureBasedPlaneTracker(cv::Ptr<cv::Feature2D>&, cv::Ptr<cv::DescriptorMatcher>&,
                            Config = Config());
 
   ~FeatureBasedPlaneTracker();
@@ -52,8 +51,8 @@ class FeatureBasedPlaneTracker
   Result track(const cv::Mat&);
 
  private:
-  UniquePointer<cv::Feature2D> _features;
-  UniquePointer<cv::DescriptorMatcher> _matcher;
+  cv::Ptr<cv::Feature2D> _features;
+  cv::Ptr<cv::DescriptorMatcher> _matcher;
   Config _config;
 
   std::vector<cv::KeyPoint> _keypoints;

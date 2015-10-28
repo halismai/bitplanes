@@ -73,7 +73,6 @@ BitPlanesChannelDataPacked<M>::set(const cv::Mat& src, const cv::Rect& roi,
       for(int b = 0; b < 8; ++b)
       {
         //pixel_ptr[8*ii + b] = (srow[x] & (1<<b)) >> b;
-
         float Ix =
             static_cast<float>( (srow[x+1] & (1 << b)) /*>> b*/ ) -
             static_cast<float>( (srow[x-1] & (1 << b)) /*>> b*/ ) ;
