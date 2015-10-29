@@ -28,6 +28,11 @@
 #include <iostream>
 #include <vector>
 
+#if BITPLANES_WITH_PROFILER
+#include <gperftools/profiler.h>
+#endif
+
+
 static const double SCALE = -100;
 
 std::vector<cv::Mat> LoadData()

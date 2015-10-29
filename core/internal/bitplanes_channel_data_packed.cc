@@ -50,9 +50,6 @@ BitPlanesChannelDataPacked<M>::set(const cv::Mat& src, const cv::Rect& roi,
   const auto Jw_tmp = ComputeWarpJacobian<M>(roi, s, c1, c2);
   const int n_valid = Jw_tmp.size();
 
-
-  printf("n_valid: %zu %d\n", n_valid,
-         (roi.width-2) * (roi.height-2));
   _pixels.resize(n_valid);
   auto* pixel_ptr = _pixels.data();
 

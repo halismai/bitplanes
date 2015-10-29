@@ -16,6 +16,10 @@
 #include <bitplanes/utils/fs.h>
 #include <bitplanes/utils/timer.h>
 
+#if BITPLANES_WITH_PROFILER
+#include <gperftools/profiler.h>
+#endif
+
 static const std::array<cv::Rect,3> RECTS
 {
   cv::Rect(263, 129, 613, 463), // vid1.png
@@ -47,22 +51,12 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
    v2
    */
   bp::AlgorithmParameters params;
-  params.num_levels = 4;
+  params.num_levels = 3;
   params.max_iterations = 50;
-  params.parameter_tolerance = 1e-5;
-  params.function_tolerance = 1e-5;
+  params.parameter_tolerance = 5e-5;
+  params.function_tolerance = 5e-5;
   params.verbose = false;
   params.sigma = 1.2;
-
-  /*
-  bp::AlgorithmParameters params;
-  params.num_levels = 3;
-  params.max_iterations = 2000;
-  params.parameter_tolerance = 1e-6;
-  params.function_tolerance = 1e-6;
-  params.verbose = false;
-  params.sigma = 0.5;
-  */
 
   BitPlanesTrackerPyramid<Homography> tracker(params);
 
@@ -80,21 +74,39 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
   cv::namedWindow("bp");
   bp::Matrix33f H( bp::Matrix33f::Identity() );
 
+#if BITPLANES_WITH_PROFILER
+  ProfilerStart("/tmp/prof");
+#endif
+
+  double total_time = 0.0f;
+  int frame = 1;
   cap >> image;
   bool stop = false;
   while( !image.empty() && !stop )
   {
     cv::cvtColor(image, image_gray, cv::COLOR_BGR2GRAY);
+
+    Timer timer;
     auto result = tracker.track(image_gray, H);
-    H = result.T / result.T(2,2);
+    total_time += timer.stop().count() / 1000.0;
+
+    H = result.T;
     DrawTrackingResult(image, image, bbox, H.data());
 
-    std::cout << result << "\n\n";
+    fprintf(stdout, "Frame %04d @ %3.2f Hz [%03d iters : %03d ms]\r",
+            frame, frame / total_time, result.num_iterations, (int) result.time_ms);
+    fflush(stdout);
 
     cv::imshow("bp", image);
     stop = ('q' == (0xff & cv::waitKey(1)));
     cap >> image;
+
+    frame += 1;
   }
+
+#if BITPLANES_WITH_PROFILER
+  ProfilerStop();
+#endif
 
 }
 

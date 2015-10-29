@@ -41,8 +41,8 @@ enum class ColorByName
  * \param H    poitner to the tranform result (3x3 matrix col-major order)
  */
 void DrawTrackingResult(cv::Mat& dst, const cv::Mat& src, const cv::Rect&,
-                        const float* H, ColorByName = ColorByName::Red,
-                        int line_thickness = 2, int line_type = 8,
+                        const float* H, ColorByName = ColorByName::Yellow,
+                        int line_thickness = 4, int line_type = 8,
                         int line_shift = 0);
 
 }; // bp
