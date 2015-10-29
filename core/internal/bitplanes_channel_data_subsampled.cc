@@ -19,6 +19,7 @@
 #include "bitplanes/core/internal/ct.h"
 #include "bitplanes/core/motion_model.h"
 #include "bitplanes/core/homography.h"
+#include "bitplanes/core/debug.h"
 #include "bitplanes/utils/error.h"
 
 #include <opencv2/core.hpp>
@@ -48,9 +49,8 @@ set(const cv::Mat& src, const cv::Rect& roi, float s, float c1, float c2)
 
   THROW_ERROR_IF( s <= 0, "scale cannot be negative or 0" );
 
-  printf("s: %d\n", _sub_sampling);
   auto n_valid = GetNumValid(roi, _sub_sampling);
-  printf("n_valid %d\n", n_valid);
+  dprintf("n_valid %d\n", n_valid);
   _pixels.resize(n_valid);
   _jacobian.resize(8*n_valid, M::DOF);
 
