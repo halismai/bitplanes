@@ -102,7 +102,7 @@ computeResiduals(const cv::Mat& Iw, Residuals& residuals) const
 
 template <class M>
 void BitPlanesChannelDataSubSampled<M>::
-getCoordinateNormalization(const cv::Rect& roi, Transform& T, Transform& T_inv) const
+getCoordinateNormalization(const cv::Rect& /*roi*/, Transform& T, Transform& T_inv) const
 {
   T.setIdentity();
   T_inv.setIdentity();
