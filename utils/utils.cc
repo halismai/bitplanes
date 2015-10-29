@@ -21,10 +21,6 @@
 #include "bitplanes/core/config.h"
 #include "bitplanes/utils/utils.h"
 
-#if BITPLANES_WITH_OPENMP
-#include <omp.h>
-#endif
-
 #include <cmath>
 #include <chrono>
 #include <cstdarg>
@@ -69,13 +65,9 @@ string datetime()
 
 double GetWallClockInSeconds()
 {
-#if BITPLANES_WITH_OPENMP
-  return omp_get_wtime();
-#else
   struct timeval tv;
   gettimeofday(&tv, NULL);
   return tv.tv_sec + tv.tv_usec*1e-6;
-#endif
 }
 
 uint64_t UnixTimestampSeconds()
