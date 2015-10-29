@@ -60,10 +60,11 @@ class BitPlanesChannelDataSubSampled :
   void getCoordinateNormalization(const cv::Rect&, Transform&, Transform&) const;
 
  protected:
-  int _sub_sampling;
   JacobianMatrix _jacobian;
   Pixels _pixels;
   Hessian _hessian;
+  int _sub_sampling;
+  int _roi_stride;
 }; // BitPlanesChannelDataSubSampled
 
 }; // bp

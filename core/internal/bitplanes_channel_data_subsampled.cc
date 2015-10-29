@@ -90,13 +90,14 @@ set(const cv::Mat& src, const cv::Rect& roi, float s, float c1, float c2)
   }
 
   _hessian = _jacobian.transpose() * _jacobian;
+  _roi_stride = roi.width;
 }
 
 template <class M>
 void BitPlanesChannelDataSubSampled<M>::
 computeResiduals(const cv::Mat& Iw, Residuals& residuals) const
 {
-  simd::census_residual_packed(Iw, _pixels, residuals, _sub_sampling);
+  simd::census_residual_packed(Iw, _pixels, residuals, _sub_sampling, _roi_stride);
 }
 
 template <class M>

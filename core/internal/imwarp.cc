@@ -91,7 +91,8 @@ void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
     {
       //TransformPoint<M>(T, x + x_s + offset, y + y_s + offset, xm(y,x), ym(y,x));
       //TransformPoint<M>(T, x + x_s + offset, y + y_s + offset, *xm_ptr, *ym_ptr);
-      const Eigen::Vector3f pw = normHomog( T * Eigen::Vector3f(x+x_s,y+y_s,1.0) );
+      const Eigen::Vector3f pw = normHomog(
+          T * Eigen::Vector3f(x+x_s+offset, y+y_s+offset,1.0f) );
       *xm_ptr = pw[0];
       *ym_ptr = pw[1];
     }

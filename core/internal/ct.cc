@@ -17,6 +17,7 @@
 
 #include "bitplanes/core/internal/ct.h"
 #include "bitplanes/core/config.h"
+#include "bitplanes/utils/utils.h"
 #include "bitplanes/utils/error.h"
 #include <opencv2/core.hpp>
 
@@ -34,6 +35,11 @@
 
 #include <cstddef>
 #include <iostream>
+
+#if BITPLANES_WITH_TBB
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
+#endif
 
 namespace bp {
 namespace simd {
@@ -127,18 +133,70 @@ void census_residual(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
   exit(0);
 }
 
+#if BITPLANES_WITH_TBB
+
+class CensusResidualsPacked
+{
+ public:
+  CensusResidualsPacked(const cv::Mat& image, const uint8_t* c0,
+                        float* residuals, int roi_stride)
+      : _image(image), _c0(c0), _residuals(residuals), _roi_stride(roi_stride) {}
+
+  void operator()(const tbb::blocked_range<int>& range) const
+  {
+    int src_stride = _image.cols;
+    int s = range.grainsize();
+    for(int y = range.begin(); y != range.end(); ++y)
+    {
+      const uint8_t* srow = _image.ptr<const uint8_t>(y);
+      for(int x = 1; x < _image.cols - 1; x += s)
+      {
+        int i = ((y-1)/s) * _roi_stride + ((x-1)/s);
+        const uint8_t* p = srow + x;
+        const uint8_t c = _c0[i];
+        float* r_ptr = _residuals + 8*i;
+        *r_ptr++ = (*(p - src_stride - 1) >= *p) - ((c & (1<<0)) >> 0);
+        *r_ptr++ = (*(p - src_stride    ) >= *p) - ((c & (1<<1)) >> 1);
+        *r_ptr++ = (*(p - src_stride + 1) >= *p) - ((c & (1<<2)) >> 2);
+        *r_ptr++ = (*(p              - 1) >= *p) - ((c & (1<<3)) >> 3);
+        *r_ptr++ = (*(p              + 1) >= *p) - ((c & (1<<4)) >> 4);
+        *r_ptr++ = (*(p + src_stride - 1) >= *p) - ((c & (1<<5)) >> 5);
+        *r_ptr++ = (*(p + src_stride    ) >= *p) - ((c & (1<<6)) >> 6);
+        *r_ptr++ = (*(p + src_stride + 1) >= *p) - ((c & (1<<7)) >> 7);
+      }
+    }
+  }
+
+ protected:
+  const cv::Mat& _image;
+  const uint8_t* _c0;
+  float* _residuals;
+  int _sub_sampling;
+  int _roi_stride;
+}; // CensusResidualsPacked
+
+#endif
+
 void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
-                            Vector_<float>& residuals, int s)
+                            Vector_<float>& residuals, int s, int roi_stride)
 {
   THROW_ERROR_IF( Iw.type() != CV_8UC1, "image must CV_8UC1" );
   THROW_ERROR_IF( !Iw.isContinuous(), "image must continuous");
 
-  const auto* c0_ptr = c0.data();
-  const int src_stride = Iw.cols;
-
   residuals.resize(8 * c0.size());
+
+  const auto* c0_ptr = c0.data();
   auto* r_ptr = residuals.data();
 
+#if BITPLANES_WITH_TBB
+  THROW_ERROR_IF(roi_stride <= 0, "roi_stride is invalid");
+  THROW_ERROR("does not work yet");
+  tbb::parallel_for(tbb::blocked_range<int>(1, Iw.rows-1, s),
+                    CensusResidualsPacked(Iw, c0_ptr, r_ptr, roi_stride));
+#else
+  UNUSED(roi_stride);
+
+  const int src_stride = Iw.cols;
   for(int y = 1; y < Iw.rows - 1; y += s)
   {
     const uint8_t* srow = Iw.ptr<const uint8_t>(y);
@@ -165,6 +223,7 @@ void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
       *r_ptr++ = (*(p + src_stride + 1) >= *p) - ((c & (1<<7)) >> 7);
     }
   }
+#endif // BITPLANES_WITH_TBB
 }
 
 }; // simd

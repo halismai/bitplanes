@@ -140,7 +140,7 @@ template <class M> inline
 void BitplanesTracker<M>::smoothImage(cv::Mat& I, const cv::Rect& /*roi*/)
 {
   if(_alg_params.sigma > 0)
-    cv::GaussianBlur(I, I, cv::Size(3,3), _alg_params.sigma);
+    cv::GaussianBlur(I, I, cv::Size(), _alg_params.sigma);
 }
 
 

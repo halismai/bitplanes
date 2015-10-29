@@ -42,7 +42,7 @@ enum class ColorByName
  */
 void DrawTrackingResult(cv::Mat& dst, const cv::Mat& src, const cv::Rect&,
                         const float* H, ColorByName = ColorByName::Yellow,
-                        int line_thickness = 4, int line_type = 8,
+                        int line_thickness = 4, int line_type = 16,
                         int line_shift = 0);
 
 }; // bp

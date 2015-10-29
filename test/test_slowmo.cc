@@ -52,12 +52,12 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
    */
   bp::AlgorithmParameters params;
   params.num_levels = 3;
-  params.max_iterations = 50;
+  params.max_iterations = 20;
   params.parameter_tolerance = 5e-5;
-  params.function_tolerance = 5e-5;
+  params.function_tolerance = 1e-4;
   params.verbose = false;
-  params.sigma = 1.2;
-  params.subsampling = 2;
+  params.sigma = 2.0;
+  params.subsampling = 3;
 
   BitPlanesTrackerPyramid<Homography> tracker(params);
 
@@ -85,6 +85,7 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
   int frame = 1;
   cap >> image;
   bool stop = false;
+  char text_buf[64];
   while( !image.empty() && !stop )
   {
     cv::cvtColor(image, image_gray, cv::COLOR_BGR2GRAY);
@@ -96,6 +97,10 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
     H = result.T;
     DrawTrackingResult(image, image, bbox, H.data());
 
+    snprintf(text_buf, 64, "Frame %05d @ %3.2f Hz", frame, frame/total_time);
+    cv::putText(image, text_buf, cv::Point(10,40),
+                cv::FONT_HERSHEY_SIMPLEX, 0.9, CV_RGB(0,0,0), 2, cv::LINE_AA);
+
     fprintf(stdout, "Frame %04d @ %3.2f Hz [%03d iters : %03d ms]\r",
             frame, frame / total_time, result.num_iterations, (int) result.time_ms);
     fflush(stdout);
@@ -106,11 +111,12 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
 
     frame += 1;
 
-    if(frame > 200)
+    /*if(frame > 200)
       break;
+      */
   }
 
-  printf("Ran at @ %0.2f Hz\n", frame / total_time);
+  printf("\nRan at @ %0.2f Hz\n", frame / total_time);
 
 #if BITPLANES_WITH_PROFILER
   ProfilerStop();
@@ -139,3 +145,4 @@ int main(int argc, char** argv)
 
   return EXIT_SUCCESS;
 }
+
