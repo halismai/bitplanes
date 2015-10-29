@@ -46,8 +46,7 @@ class BitplanesTracker
   typedef typename MotionModelType::Gradient        Gradient;
   typedef typename MotionModelType::ParameterVector ParameterVector;
 
-  typedef BitPlanesChannelDataSubSampled<M> CData;
-  typedef BitPlanesChannelData<CData> ChannelDataType;
+  typedef BitPlanesChannelDataSubSampled<M> ChannelDataType;
 
  public:
   BitplanesTracker(AlgorithmParameters p = AlgorithmParameters());
@@ -72,12 +71,6 @@ class BitplanesTracker
   Eigen::LDLT<Hessian> _ldlt;
 
   float linearize(const cv::Mat&, const Transform& T_init);
-
-  void setNormalization(const cv::Rect&)
-  {
-    _T.setIdentity();
-    _T_inv.setIdentity();
-  }
 
   void smoothImage(cv::Mat& I, const cv::Rect& roi);
 

@@ -57,6 +57,7 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
   params.function_tolerance = 5e-5;
   params.verbose = false;
   params.sigma = 1.2;
+  params.subsampling = 2;
 
   BitPlanesTrackerPyramid<Homography> tracker(params);
 
@@ -69,7 +70,9 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
   }
 
   cv::cvtColor(image, image_gray, cv::COLOR_BGR2GRAY);
+  printf("setting template\n");
   tracker.setTemplate(image_gray, bbox);
+  printf("ok\n");
 
   cv::namedWindow("bp");
   bp::Matrix33f H( bp::Matrix33f::Identity() );
@@ -102,7 +105,12 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
     cap >> image;
 
     frame += 1;
+
+    if(frame > 200)
+      break;
   }
+
+  printf("Ran at @ %0.2f Hz\n", frame / total_time);
 
 #if BITPLANES_WITH_PROFILER
   ProfilerStop();

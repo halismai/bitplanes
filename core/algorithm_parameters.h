@@ -98,6 +98,10 @@ struct AlgorithmParameters
   bool verbose = true;
 
   /**
+   */
+  int subsampling = 1;
+
+  /**
    * Multi-channel function to use
    */
   MultiChannelExtractorType multi_channel_function =

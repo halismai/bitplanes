@@ -32,7 +32,8 @@ namespace bp {
 
 template <class M>
 BitplanesTracker<M>::BitplanesTracker(AlgorithmParameters p)
-  : _alg_params(p), _T(Matrix33f::Identity()), _T_inv(Matrix33f::Identity())
+  : _alg_params(p), _cdata(p.subsampling)
+  , _T(Matrix33f::Identity()), _T_inv(Matrix33f::Identity())
   , _interp(cv::INTER_LINEAR) {}
 
 template <class M>
@@ -41,7 +42,7 @@ void BitplanesTracker<M>::setTemplate(const cv::Mat& image, const cv::Rect& bbox
   image.copyTo(_I0);
   smoothImage(_I0, bbox);
 
-  setNormalization(bbox);
+  _cdata.getCoordinateNormalization(bbox, _T, _T_inv);
   _bbox = bbox;
   _cdata.set(_I0, bbox, _T(0,0), _T_inv(0,2), _T_inv(1,2));
 
@@ -142,10 +143,6 @@ void BitplanesTracker<M>::smoothImage(cv::Mat& I, const cv::Rect& /*roi*/)
     cv::GaussianBlur(I, I, cv::Size(3,3), _alg_params.sigma);
 }
 
-template<> void BitplanesTracker<Homography>::setNormalization(const cv::Rect& bbox)
-{
-  HartlyNormalization(bbox, _T, _T_inv);
-}
 
 template class BitplanesTracker<Homography>;
 

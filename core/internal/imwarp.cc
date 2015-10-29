@@ -54,6 +54,21 @@ TransformPoint<Homography>(const Matrix33f& T, float x, float y, float& xw, floa
   yw = w_i * (T(1,0)*x + T(1,1)*y + T(1,2));
 }
 
+template <class Derived> static inline
+Eigen::Matrix<
+  typename Derived::PlainObject::Scalar,
+  Derived::PlainObject::RowsAtCompileTime,
+  Derived::PlainObject::ColsAtCompileTime>
+normHomog(const Eigen::MatrixBase<Derived>& x)
+{
+  static_assert(Derived::PlainObject::RowsAtCompileTime != Eigen::Dynamic &&
+                Derived::PlainObject::ColsAtCompileTime == 1,
+                "normHomog: input must be a vector of known dimension");
+
+  return x * (1.0f / x[Derived::PlainObject::RowsAtCompileTime-1]);
+}
+
+
 template <class M>
 void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
             const cv::Rect& box, cv::Mat& xmap, cv::Mat& ymap,
@@ -64,15 +79,21 @@ void imwarp(const cv::Mat& src, cv::Mat& dst, const Matrix33f& T,
 
   THROW_ERROR_IF( xmap.empty() || ymap.empty(), "Failed to allocate interp maps" );
 
-  cv::Mat_<float>& xm = (cv::Mat_<float>&) xmap;
-  cv::Mat_<float>& ym = (cv::Mat_<float>&) ymap;
+  //cv::Mat_<float>& xm = (cv::Mat_<float>&) xmap;
+  //cv::Mat_<float>& ym = (cv::Mat_<float>&) ymap;
+  float* xm_ptr = xmap.ptr<float>();
+  float* ym_ptr = ymap.ptr<float>();
 
   const int x_s = box.x, y_s = box.y;
   for(int y = 0; y < box.height; ++y)
   {
-    for(int x = 0; x < box.width; ++x)
+    for(int x = 0; x < box.width; ++x, ++xm_ptr, ++ym_ptr)
     {
-      TransformPoint<M>(T, x + x_s + offset, y + y_s + offset, xm(y,x), ym(y,x));
+      //TransformPoint<M>(T, x + x_s + offset, y + y_s + offset, xm(y,x), ym(y,x));
+      //TransformPoint<M>(T, x + x_s + offset, y + y_s + offset, *xm_ptr, *ym_ptr);
+      const Eigen::Vector3f pw = normHomog( T * Eigen::Vector3f(x+x_s,y+y_s,1.0) );
+      *xm_ptr = pw[0];
+      *ym_ptr = pw[1];
     }
   }
 

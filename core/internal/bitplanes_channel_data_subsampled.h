@@ -46,7 +46,7 @@ class BitPlanesChannelDataSubSampled :
    * value of 2 means decimate by half, and so own
    */
   inline BitPlanesChannelDataSubSampled(size_t s = 1)
-      : _sub_sampling(s) {}
+      : Base(), _sub_sampling(s) {}
 
   void set(const cv::Mat&, const cv::Rect& roi, float s = 1,
            float c1 = 0, float c2 = 0);

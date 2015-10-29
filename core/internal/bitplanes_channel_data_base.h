@@ -50,6 +50,7 @@ class BitPlanesChannelData
   template <class ... Args> inline
   void set(const cv::Mat& image, const cv::Rect& roi, Args&...args)
   {
+    printf("calling set\n");
     return derived()->set(image, roi, args...);
   }
 
