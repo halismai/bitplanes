@@ -33,6 +33,7 @@
 #endif
 
 #include <cstddef>
+#include <iostream>
 
 namespace bp {
 namespace simd {
@@ -91,6 +92,9 @@ void census_residual(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
   residuals.resize(c0.size());
   auto* r_ptr = residuals.data();
 
+  for(int x = 0; x < Iw.cols; ++x)
+    *r_ptr++ = 0.0f;
+
   for(int y = 1; y < Iw.rows - 1; ++y)
   {
     const uint8_t* srow = Iw.ptr<const uint8_t>(y);
@@ -103,6 +107,7 @@ void census_residual(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
 #if HAVE_NEON
 #endif
 
+    *r_ptr++ = 0.0;
     for( ; x < Iw.cols - 1; ++x)
     {
       const uint8_t* p = srow + x;
@@ -115,7 +120,11 @@ void census_residual(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
       *r_ptr++ = (*(p + src_stride    ) >= *p) - *c0_ptr++;
       *r_ptr++ = (*(p + src_stride + 1) >= *p) - *c0_ptr++;
     }
+    *r_ptr++ = 0;
   }
+
+  printf("DIFF: %p %p\n", r_ptr, residuals.data() + residuals.size());
+  exit(0);
 }
 
 void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,

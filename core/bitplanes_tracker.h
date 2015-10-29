@@ -22,7 +22,7 @@
 #include "bitplanes/core/types.h"
 #include "bitplanes/core/algorithm_parameters.h"
 #include "bitplanes/core/motion_model.h"
-#include "bitplanes/core/internal/bitplanes_channel_data_packed.h"
+#include "bitplanes/core/internal/bitplanes_channel_data_packed2.h"
 #include <opencv2/core.hpp>
 
 #include <limits>
@@ -45,7 +45,7 @@ class BitplanesTracker
   typedef typename MotionModelType::Gradient        Gradient;
   typedef typename MotionModelType::ParameterVector ParameterVector;
 
-  typedef BitPlanesChannelDataPacked<M> ChannelDataType;
+  typedef BitPlanesChannelDataPacked2<M> ChannelDataType;
 
  public:
   BitplanesTracker(AlgorithmParameters p = AlgorithmParameters());
@@ -78,12 +78,12 @@ class BitplanesTracker
   void smoothImage(cv::Mat& I, const cv::Rect& roi);
 
   int _interp;
+
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 }; // BitplanesTracker
-
-
 }; // bp
 
 #endif // BITPLANES_CORE_BITPLANES_TRACKER_H
+
 

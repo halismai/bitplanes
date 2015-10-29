@@ -47,12 +47,12 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
    v2
    */
   bp::AlgorithmParameters params;
-  params.num_levels = 3;
-  params.max_iterations = 100;
+  params.num_levels = 4;
+  params.max_iterations = 50;
   params.parameter_tolerance = 1e-5;
-  params.function_tolerance = 1e-4;
+  params.function_tolerance = 1e-5;
   params.verbose = false;
-  params.sigma = 0.5;
+  params.sigma = 1.2;
 
   /*
   bp::AlgorithmParameters params;
@@ -63,7 +63,6 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
   params.verbose = false;
   params.sigma = 0.5;
   */
-
 
   BitPlanesTrackerPyramid<Homography> tracker(params);
 

@@ -50,7 +50,9 @@ BitPlanesChannelDataPacked<M>::set(const cv::Mat& src, const cv::Rect& roi,
   const auto Jw_tmp = ComputeWarpJacobian<M>(roi, s, c1, c2);
   const int n_valid = Jw_tmp.size();
 
-  //_pixels.resize(n_valid * 8);
+
+  printf("n_valid: %zu %d\n", n_valid,
+         (roi.width-2) * (roi.height-2));
   _pixels.resize(n_valid);
   auto* pixel_ptr = _pixels.data();
 
@@ -61,31 +63,51 @@ BitPlanesChannelDataPacked<M>::set(const cv::Mat& src, const cv::Rect& roi,
 
   _roi_stride = roi.width - 2;
 
-  typedef Eigen::Matrix<float,1,2> ImageGradient;
+  auto GetBit = [](uint8_t v, int bit)
+  {
+    return static_cast<float>( (v & (1<<bit)) >> bit );
+  };
+
   for(int y = 1; y < C.rows - 1; ++y)
   {
     const uint8_t* srow = C.ptr<const uint8_t>(y);
     for(int x = 1; x < C.cols - 1; ++x)
     {
-      int ii = (y-1)*_roi_stride + x - 1;
-      const auto& Jw = Jw_tmp[ii];
+      //int ii = (y-1)*_roi_stride + x - 1;
+      //const auto& Jw = Jw_tmp[ii];
       *pixel_ptr++ = srow[x];
       for(int b = 0; b < 8; ++b)
       {
-        //pixel_ptr[8*ii + b] = (srow[x] & (1<<b)) >> b;
+#if 0
         float Ix =
             static_cast<float>( (srow[x+1] & (1 << b)) /*>> b*/ ) -
             static_cast<float>( (srow[x-1] & (1 << b)) /*>> b*/ ) ;
-
         float Iy =
             static_cast<float>(srow[x + C.cols] & (1 << b) /*>> b*/) -
             static_cast<float>(srow[x - C.cols] & (1 << b) /*>> b*/);
-
         //float w = sqrt( fabs(Ix) + fabs(Iy) );
         float w = 1.0f / (float) ( 1 << b );
+#endif
 
-        int jj = 8*((y-1)*_roi_stride + x - 1) + b;
-        _jacobian.row(jj) = w * 0.5f * ImageGradient(Ix, Iy) * Jw;
+        float w = 0.5f;
+        float Ix = w * GetBit(srow[x+1], b) - GetBit(srow[x-1], b);
+        float Iy = w * GetBit(srow[x+C.cols], b) - GetBit(srow[x-C.cols], b);
+        int jj  = 8*((y-1)*_roi_stride + x - 1) + b;
+        //_jacobian.row(jj) = ImageGradient(Ix, Iy) * Jw;
+        Eigen::Matrix<float,8,1> J;
+
+        float u = x - 1;
+        float v = y - 1;
+        J <<
+            Ix/s,
+            Iy/s,
+            Iy*(c1 - u) - Ix*(c2 - v),
+            Ix*u - Iy*c2 - Ix*c1 + Iy*v,
+            Iy*(c2 - v) - Ix*(c1 - u),
+            -Ix*(c2 - v),
+            -s*(c1 - u)*(Ix*c1 + Iy*c2 - Ix*u - Iy*v),
+            -s*(c2 - v)*(Ix*c1 + Iy*c2 - Ix*v - Iy*v);
+        _jacobian.row(jj) = J;
       }
     }
   }
@@ -95,7 +117,8 @@ BitPlanesChannelDataPacked<M>::set(const cv::Mat& src, const cv::Rect& roi,
 
 
 template <class M>
-void BitPlanesChannelDataPacked<M>::computeResiduals(const cv::Mat& Iw, Pixels& residuals) const
+void BitPlanesChannelDataPacked<M>::computeResiduals(const cv::Mat& Iw,
+                                                     Pixels& residuals) const
 {
   simd::census_residual_packed(Iw, _pixels, residuals);
 }

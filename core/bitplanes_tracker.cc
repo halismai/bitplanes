@@ -26,12 +26,14 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include <Eigen/LU>
+
 namespace bp {
 
 template <class M>
 BitplanesTracker<M>::BitplanesTracker(AlgorithmParameters p)
   : _alg_params(p), _T(Matrix33f::Identity()), _T_inv(Matrix33f::Identity())
-  , _interp(cv::INTER_CUBIC) {}
+  , _interp(cv::INTER_LINEAR) {}
 
 template <class M>
 void BitplanesTracker<M>::setTemplate(const cv::Mat& image, const cv::Rect& bbox)
@@ -59,7 +61,7 @@ Result BitplanesTracker<M>::track(const cv::Mat& image, const Transform& T_init)
   const auto p_tol = this->_alg_params.parameter_tolerance,
         f_tol = this->_alg_params.function_tolerance,
         sqrt_eps = std::sqrt(std::numeric_limits<float>::epsilon()),
-        tol_opt = 1e-4f * p_tol, rel_factor = std::max(sqrt_eps, g_norm);
+        tol_opt = 1e-4f * f_tol, rel_factor = std::max(sqrt_eps, g_norm);
 
   const auto max_iters = this->_alg_params.max_iterations;
   const auto verbose = this->_alg_params.verbose;
@@ -109,6 +111,7 @@ Result BitplanesTracker<M>::track(const cv::Mat& image, const Transform& T_init)
     if(!has_converged) {
       g_norm = this->linearize(_I1, ret.T);
     }
+
   }
 
   ret.time_ms = timer.stop().count();
@@ -124,29 +127,19 @@ Result BitplanesTracker<M>::track(const cv::Mat& image, const Transform& T_init)
 template <class M> inline
 float BitplanesTracker<M>::linearize(const cv::Mat& I, const Transform& T)
 {
-  imwarp<M>(I, _Iw, T, _bbox, _interp_maps[0], _interp_maps[1], _interp, 0.0);
+  imwarp<M>(I, _Iw, T, _bbox, _interp_maps[0], _interp_maps[1], _interp, 0.f);
   _cdata.computeResiduals(_Iw, _residuals);
 
   _gradient = _cdata.jacobian().transpose() * _residuals;
-
-  /*
-     cv::Mat D;
-     cv::absdiff(_I0(_bbox), _Iw, D);
-     cv::imshow("D", D);
-     cv::waitKey(10);
-
-     D.convertTo(D, CV_32FC1);
-     float i_error = cv::sum(cv::sum(D))[0];
-     Info("Intensity error %g\n", i_error);
-     */
 
   return _gradient.template lpNorm<Eigen::Infinity>();
 }
 
 template <class M> inline
-void BitplanesTracker<M>::smoothImage(cv::Mat& I, const cv::Rect& roi)
+void BitplanesTracker<M>::smoothImage(cv::Mat& I, const cv::Rect& /*roi*/)
 {
-  cv::GaussianBlur(I(roi), I(roi), cv::Size(3,3), _alg_params.sigma);
+  if(_alg_params.sigma > 0)
+    cv::GaussianBlur(I, I, cv::Size(3,3), _alg_params.sigma);
 }
 
 template<> void BitplanesTracker<Homography>::setNormalization(const cv::Rect& bbox)

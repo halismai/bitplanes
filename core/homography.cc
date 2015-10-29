@@ -119,7 +119,7 @@ auto Homography::ComputeWarpJacobian(float x, float y, float s, float c1, float 
 
   Jw <<
       1/s,  0, y - c2, x - c1, x - c1, y - c2, -s*sq(c1 - x), -s*(c1 - x)*(c2 - y),
-      0, 1/s, c1 - x, y - c2, c2 - y,  0, -s*(c1 - x)*(c2 - y),  -s*sq(c2 - y);
+      0,  1/s, c1 - x, y - c2, c2 - y,      0, -s*(c1 - x)*(c2 - y),  -s*sq(c2 - y);
 
   return Jw;
 }

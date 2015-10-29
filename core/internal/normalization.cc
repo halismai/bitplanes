@@ -22,18 +22,19 @@ namespace bp {
 
 void HartlyNormalization(const cv::Rect& box, Matrix33f& T, Matrix33f& T_inv)
 {
+  float n_valid = (box.width-2)*(box.height-2);
   Vector2f c(0.0f, 0.0f);
-  for(int y = 0; y <  box.height; ++y)
-    for(int x = 0; x < box.width; ++x)
-      c += Vector2f(x, y);
-  c /= static_cast<float>( box.area() );
+  for(int y = 1; y < box.height-1; ++y)
+    for(int x = 1; x < box.width-1; ++x)
+      c += Vector2f(x + box.x, y + box.y);
+  c /= n_valid;
 
   float m = 0.0f;
-  for(int y = 0; y < box.height; ++y)
-    for(int x = 0; x < box.width; ++x)
-      m += (Vector2f(x,y) - c).norm();
+  for(int y = 1; y < box.height-1; ++y)
+    for(int x = 1; x < box.width-1; ++x)
+      m += (Vector2f(x + box.x, y + box.y) - c).norm();
 
-  m /= static_cast<float>( box.area() );
+  m /= n_valid;
 
   float s = sqrt(2.0f) / std::max(m, 1e-6f);
 
