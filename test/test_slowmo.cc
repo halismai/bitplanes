@@ -20,11 +20,17 @@
 #include <gperftools/profiler.h>
 #endif
 
-static const std::array<cv::Rect,3> RECTS
+static const std::array<cv::Rect,9> RECTS
 {
   cv::Rect(263, 129, 613, 463), // vid1.png
   cv::Rect(314, 205, 511, 392), // vid2.png
-  cv::Rect(418, 194, 367, 356)
+  cv::Rect(418, 194, 367, 356), // 3
+  cv::Rect(259, 131, 625, 479), // 4
+  cv::Rect(314, 206, 516, 386), // 5
+  cv::Rect(428, 199, 372, 344), // 6
+  cv::Rect(295, 120, 626, 500), // 7
+  cv::Rect(349, 71,  493, 494), // 8
+  cv::Rect(219, 101, 674, 497)  // 9
 };
 
 static const double SCALE = 0.25;
@@ -58,6 +64,18 @@ static inline cv::Rect GetRectFromFilename(std::string name)
     ret = RECTS[1];
   } else if("v3" == s) {
     ret = RECTS[2];
+  } else if("v4" == s) {
+    ret = RECTS[3];
+  } else if("v5" == s) {
+    ret = RECTS[4];
+  } else if("v6" == s) {
+    ret = RECTS[5];
+  } else if("v7" == s) {
+    ret = RECTS[6];
+  } else if("v8" == s) {
+    ret = RECTS[7];
+  } else if("v9" == s) {
+    ret = RECTS[8];
   } else {
     throw std::runtime_error("unknown video name " + s);
   }
@@ -130,7 +148,6 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
     return;
   }
 
-  bool stop = false;
   char text_buf[64];
 
   bool save_video = false;
@@ -141,40 +158,40 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
     video_writer.set(cv::VIDEOWRITER_PROP_QUALITY, 90);
   }
 
-  while( GetFrame(cap, image, image_gray) && !stop )
-  {
+  bool verbose = true;
 
+  Result result(bp::Matrix33f::Identity());
+
+  while( GetFrame(cap, image, image_gray) && ('q' != cv::waitKey(1)) ) {
     Timer timer;
-    auto result = tracker.track(image_gray, H);
+    result = tracker.track(image_gray, result.T);
     total_time += timer.stop().count() / 1000.0;
 
-    H = result.T;
-    //std::cout << "SCALE: " << std::pow(2.0, 1.0/SCALE) << std::endl;
-
     bp::Matrix33f H_scaled = SCALE > 0 ?
-        bp::Homography::Scale(H, 1.0/SCALE) : H;
+        bp::Homography::Scale(result.T, 1.0/SCALE) : result.T;
     DrawTrackingResult(image, image, bbox_original, H_scaled.data());
 
     snprintf(text_buf, 64, "Frame %05d @ %3.2f Hz", frame, frame/total_time);
     cv::putText(image, text_buf, cv::Point(10,40),
                 cv::FONT_HERSHEY_SIMPLEX, 0.7, CV_RGB(0,0,0), 2, cv::LINE_AA);
 
-    /*
-    fprintf(stdout, "Frame %04d @ %3.2f Hz [%03d iters : %03d ms]\r",
-            frame, frame / total_time, result.num_iterations, (int) result.time_ms);
-    fflush(stdout);
-    */
+    if(verbose) {
+      fprintf(stdout, "Frame %04d @ %3.2f Hz [%03d iters : %03d ms]\r",
+              frame, frame / total_time, result.num_iterations, (int) result.time_ms);
+      fflush(stdout);
+    }
 
     cv::imshow("bp", image);
 
     if(video_writer.isOpened())
       video_writer << image;
 
-    stop = ('q' == (0xff & cv::waitKey(1)));
     frame += 1;
   }
 
-  printf("\nRan at @ %0.2f Hz\n", frame / total_time);
+  if(verbose) fprintf(stdout, "\n");
+  Info("Ran at @ %0.2f Hz\n", frame / total_time);
+
 
 #if BITPLANES_WITH_PROFILER
   ProfilerStop();

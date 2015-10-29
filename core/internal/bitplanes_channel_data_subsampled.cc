@@ -140,3 +140,4 @@ getCoordinateNormalization(const cv::Rect& roi, Transform& T, Transform& T_inv) 
 template class BitPlanesChannelDataSubSampled<Homography>;
 
 }
+
