@@ -45,7 +45,8 @@ void census_residual(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
                      Vector_<float>& residuals);
 
 void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
-                            Vector_<float>& residuals);
+                            Vector_<float>& residuals, int s = 1);
+
 
 
 }; // simd

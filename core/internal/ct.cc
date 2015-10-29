@@ -128,7 +128,7 @@ void census_residual(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
 }
 
 void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
-                            Vector_<float>& residuals)
+                            Vector_<float>& residuals, int s)
 {
   THROW_ERROR_IF( Iw.type() != CV_8UC1, "image must CV_8UC1" );
   THROW_ERROR_IF( !Iw.isContinuous(), "image must continuous");
@@ -139,7 +139,7 @@ void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
   residuals.resize(8 * c0.size());
   auto* r_ptr = residuals.data();
 
-  for(int y = 1; y < Iw.rows - 1; ++y)
+  for(int y = 1; y < Iw.rows - 1; y += s)
   {
     const uint8_t* srow = Iw.ptr<const uint8_t>(y);
 
@@ -151,7 +151,7 @@ void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
 #if HAVE_NEON
 #endif
 
-    for( ; x < Iw.cols - 1; ++x)
+    for( ; x < Iw.cols - 1; x += s)
     {
       const uint8_t* p = srow + x;
       const uint8_t c = *c0_ptr++;

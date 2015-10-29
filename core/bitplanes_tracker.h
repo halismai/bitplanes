@@ -22,7 +22,8 @@
 #include "bitplanes/core/types.h"
 #include "bitplanes/core/algorithm_parameters.h"
 #include "bitplanes/core/motion_model.h"
-#include "bitplanes/core/internal/bitplanes_channel_data_packed2.h"
+#include "bitplanes/core/internal/bitplanes_channel_data_base.h"
+#include "bitplanes/core/internal/bitplanes_channel_data_subsampled.h"
 #include <opencv2/core.hpp>
 
 #include <limits>
@@ -45,7 +46,8 @@ class BitplanesTracker
   typedef typename MotionModelType::Gradient        Gradient;
   typedef typename MotionModelType::ParameterVector ParameterVector;
 
-  typedef BitPlanesChannelDataPacked2<M> ChannelDataType;
+  typedef BitPlanesChannelDataSubSampled<M> CData;
+  typedef BitPlanesChannelData<CData> ChannelDataType;
 
  public:
   BitplanesTracker(AlgorithmParameters p = AlgorithmParameters());
@@ -53,6 +55,8 @@ class BitplanesTracker
   void setTemplate(const cv::Mat& image, const cv::Rect& bbox);
 
   Result track(const cv::Mat& image, const Transform& T_init = Transform::Identity());
+
+  void getNormalization(const cv::Rect& roi, Transform& T, Transform& T_inv) const;
 
  protected:
   AlgorithmParameters _alg_params;
