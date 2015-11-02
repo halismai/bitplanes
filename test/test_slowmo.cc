@@ -120,6 +120,8 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
   cv::Rect bbox_original;
   bbox_original = SCALE > 0 ? ScaleRect(bbox, 1.0 / SCALE) : bbox;
 
+  std::cout << "template: " << bbox << std::endl;
+
   BitPlanesTrackerPyramid<Homography> tracker(GetDefaultParams());
 
   cv::Mat image, image_gray;
