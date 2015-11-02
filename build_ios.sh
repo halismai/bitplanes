@@ -11,7 +11,7 @@ cmake ../.. -DCMAKE_TOOLCHAIN_FILE=../../cmake/iOS.cmake  \
   -DCMAKE_BUILD_TYPE=Release                              \
   -DCMAKE_INSTALL_PREFIX=..
 
-make VERBOSE=1 -j8 && make install
+make VERBOSE=0  -j8 && make install
 
 cd ../../
 
