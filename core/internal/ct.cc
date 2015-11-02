@@ -201,7 +201,7 @@ void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
   {
     const uint8_t* srow = Iw.ptr<const uint8_t>(y);
 
-    int x = 1;
+    //int x = 1;
 
 #if HAVE_SSE2
 #endif
@@ -209,7 +209,8 @@ void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
 #if HAVE_NEON
 #endif
 
-    for( ; x < Iw.cols - 1; x += s)
+#pragma omp simd
+    for(int x = 1; x < Iw.cols - 1; x += s)
     {
       const uint8_t* p = srow + x;
       const uint8_t c = *c0_ptr++;

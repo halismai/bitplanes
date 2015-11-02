@@ -92,7 +92,7 @@ static bp::AlgorithmParameters GetDefaultParams()
   params.function_tolerance = 1e-4;
   params.verbose = false;
   params.sigma = 2.0;
-  params.subsampling = 1;
+  params.subsampling = 2;
   return params;
 }
 
@@ -113,7 +113,8 @@ static bool GetFrame(cv::VideoCapture& cap, cv::Mat& image_original,
   return !image_original.empty();
 }
 
-static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
+static inline
+void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox, const char* output_video)
 {
   using namespace bp;
 
@@ -152,12 +153,12 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
 
   char text_buf[64];
 
-  bool save_video = false;
+  bool save_video = NULL != output_video;
   int fourcc = cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
   cv::VideoWriter video_writer;
   if(save_video) {
-    video_writer.open("results.avi", fourcc, 25, image.size());
-    video_writer.set(cv::VIDEOWRITER_PROP_QUALITY, 90);
+    video_writer.open(output_video, fourcc, 25, image.size());
+    video_writer.set(cv::VIDEOWRITER_PROP_QUALITY, 95);
   }
 
   bool verbose = true;
@@ -204,6 +205,8 @@ static inline void RunBitPlanes(cv::VideoCapture& cap, const cv::Rect& bbox)
 
 int main(int argc, char** argv)
 {
+  cv::setNumThreads(0);
+
   if(argc < 2)
   {
     std::cerr << "usage: " << argv[0] << " video_name" << std::endl;
@@ -218,7 +221,8 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  RunBitPlanes(cap, GetRectFromFilename(video_name));
+
+  RunBitPlanes(cap, GetRectFromFilename(video_name), argc > 2 ? argv[2] : NULL);
 
   return EXIT_SUCCESS;
 }
