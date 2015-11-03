@@ -100,8 +100,8 @@ computeResiduals(const cv::Mat& Iw, Residuals& residuals) const
   typedef int8_t CType;
   cv::AutoBuffer<CType> buf(8*_pixels.size());
   CType* r_ptr = buf;
-  const uint8_t* c0_ptr = _pixels.data();
 
+  const uint8_t* c0_ptr = _pixels.data();
   const int src_stride = Iw.cols;
   for(int y = 1; y < Iw.rows - 1; y += _sub_sampling)
   {
@@ -120,11 +120,33 @@ computeResiduals(const cv::Mat& Iw, Residuals& residuals) const
       *r_ptr++ = (*(p + src_stride - 1) >= *p) - ((c & (1<<5)) >> 5);
       *r_ptr++ = (*(p + src_stride    ) >= *p) - ((c & (1<<6)) >> 6);
       *r_ptr++ = (*(p + src_stride + 1) >= *p) - ((c & (1<<7)) >> 7);
+      /*
+      *r_ptr++ =
+          ((*(p - src_stride - 1) >= *p) << 0) |
+          ((*(p - src_stride    ) >= *p) << 1) |
+          ((*(p - src_stride + 1) >= *p) << 2) |
+          ((*(p              - 1) >= *p) << 3) |
+          ((*(p              + 1) >= *p) << 4) |
+          ((*(p + src_stride - 1) >= *p) << 5) |
+          ((*(p + src_stride    ) >= *p) << 6) |
+          ((*(p + src_stride + 1) >= *p) << 7) ;*/
     }
   }
 
   using namespace Eigen;
   residuals=Map<Vector_<CType>, Aligned>(buf,_pixels.size()*8,1).template cast<float>();
+
+  /*
+  int N = 8 * _pixels.size();
+  if(residuals.size() != N)
+    residuals.resize(N,1);
+  r_ptr = buf;
+  for(int i = 0; i < N/8; ++i)
+  {
+    for(int b = 0; b < 8; ++b)
+      residuals[8*i+b] = ((r_ptr[i] & (1<<b)) >> b) - ((c0_ptr[i] & (1<<b)) >> b);
+  }
+  */
 }
 
 template <class Derived> static inline
