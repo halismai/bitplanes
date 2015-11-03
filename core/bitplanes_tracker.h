@@ -63,7 +63,7 @@ class BitplanesTracker
   cv::Rect _bbox;
   cv::Mat _I0, _I1;
   cv::Mat _Iw;
-  cv::Mat _interp_maps[2];
+  //cv::Mat _interp_maps[2];
   Matrix33f _T, _T_inv;
   Gradient _gradient;
   Vector_<float> _residuals;

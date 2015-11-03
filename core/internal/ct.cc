@@ -138,6 +138,12 @@ void census_residual(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
 class CensusResidualsPacked
 {
  public:
+  /**
+   * \param image the   input/warped image
+   * \param c0          pointer to the reference census transform
+   * \param residuals   output residuals
+   * \param roi_stride  ROI stride
+   */
   CensusResidualsPacked(const cv::Mat& image, const uint8_t* c0,
                         float* residuals, int roi_stride)
       : _image(image), _c0(c0), _residuals(residuals), _roi_stride(roi_stride) {}
@@ -190,18 +196,16 @@ void census_residual_packed(const cv::Mat& Iw, const Vector_<uint8_t>& c0,
 
 #if BITPLANES_WITH_TBB
   THROW_ERROR_IF(roi_stride <= 0, "roi_stride is invalid");
-  THROW_ERROR("does not work yet");
   tbb::parallel_for(tbb::blocked_range<int>(1, Iw.rows-1, s),
                     CensusResidualsPacked(Iw, c0_ptr, r_ptr, roi_stride));
 #else
   UNUSED(roi_stride);
 
+  //int8_t buf[8];
   const int src_stride = Iw.cols;
   for(int y = 1; y < Iw.rows - 1; y += s)
   {
     const uint8_t* srow = Iw.ptr<const uint8_t>(y);
-
-    //int x = 1;
 
 #if HAVE_SSE2
 #endif

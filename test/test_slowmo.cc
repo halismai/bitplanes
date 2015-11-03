@@ -92,7 +92,7 @@ static bp::AlgorithmParameters GetDefaultParams()
   params.function_tolerance = 1e-4;
   params.verbose = false;
   params.sigma = 2.0;
-  params.subsampling = 2;
+  params.subsampling = 4;
   return params;
 }
 

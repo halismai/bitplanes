@@ -128,7 +128,8 @@ Result BitplanesTracker<M>::track(const cv::Mat& image, const Transform& T_init)
 template <class M> inline
 float BitplanesTracker<M>::linearize(const cv::Mat& I, const Transform& T)
 {
-  imwarp<M>(I, _Iw, T, _bbox, _interp_maps[0], _interp_maps[1], _interp, 0.f);
+  //imwarp<M>(I, _Iw, T, _bbox, _interp_maps[0], _interp_maps[1], _interp, 0.f);
+  _cdata.warpImage(I, T, _bbox, _Iw, _interp, 0.0f);
   _cdata.computeResiduals(_Iw, _residuals);
 
   _gradient = _cdata.jacobian().transpose() * _residuals;

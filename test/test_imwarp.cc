@@ -22,7 +22,7 @@ int main()
   bp::imwarp<bp::Homography>(I, Iw, T, roi, xmap, ymap);
 
   auto t_ms = bp::TimeCode(1000, [&]() { bp::imwarp<bp::Homography>(I,Iw,T,roi,xmap,ymap); });
-  printf("time %0.2f ms\n", t_ms);
+  printf("remap time %0.2f ms\n", t_ms);
 
   std::cout << roi.size() << std::endl;
   std::cout << Iw.size() << std::endl;
@@ -31,7 +31,7 @@ int main()
   bp::imwarp<bp::Homography>(I, Iw2, T, roi);
 
   t_ms = bp::TimeCode(1000, [&]() { bp::imwarp<bp::Homography>(I,Iw2,T,roi); });
-  printf("time %0.2f ms\n", t_ms);
+  printf("warpPerspective time %0.2f ms\n", t_ms);
 
   cv::imshow("I", I(roi));
   cv::imshow("Iw", Iw);

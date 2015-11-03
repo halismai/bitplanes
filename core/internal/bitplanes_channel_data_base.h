@@ -65,6 +65,13 @@ class BitPlanesChannelData
     return derived()->computeResiduals(warped_image, residuals);
   }
 
+  template <class ... Args> inline
+  void warpImage(const cv::Mat& src, const Transform& T, const cv::Rect& bbox,
+                 cv::Mat& dst, Args&...args) const
+  {
+    return derived()->warpImage(src, T, bbox, dst, args...);
+  }
+
   inline const Pixels& pixels() const { return derived()->pixels(); }
   inline const Hessian& hessian() const { return derived()->hessian(); }
   inline const JacobianMatrix& jacobian() const { return derived()->jacobian(); }

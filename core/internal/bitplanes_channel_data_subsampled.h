@@ -21,6 +21,8 @@
 #include "bitplanes/core/internal/bitplanes_channel_data_base.h"
 #include "bitplanes/core/motion_model.h"
 
+#include <opencv2/imgproc.hpp>
+
 namespace bp {
 
 template <class> class BitPlanesChannelDataSubSampled;
@@ -52,6 +54,9 @@ class BitPlanesChannelDataSubSampled :
            float c1 = 0, float c2 = 0);
 
   void computeResiduals(const cv::Mat& Iw, Residuals& residuals) const;
+
+  void warpImage(const cv::Mat& src, const Transform& T, const cv::Rect& roi,
+                 cv::Mat& dst, int interp = cv::INTER_LINEAR, float border = 0.0f);
 
   inline const Pixels& pixels() const { return _pixels; }
   inline const Hessian& hessian() const { return _hessian; }
