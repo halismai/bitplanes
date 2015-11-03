@@ -22,7 +22,7 @@
 #include "bitplanes/core/types.h"
 
 #include <opencv2/features2d.hpp>
-
+#include <vector>
 
 namespace bp {
 
@@ -42,13 +42,15 @@ class FeatureBasedPlaneTracker
   typedef bp::Matrix33f Transform;
 
  public:
-  FeatureBasedPlaneTracker(cv::Ptr<cv::Feature2D>&, cv::Ptr<cv::DescriptorMatcher>&,
+  FeatureBasedPlaneTracker(cv::Ptr<cv::Feature2D>, cv::Ptr<cv::DescriptorMatcher>,
                            Config = Config());
 
   ~FeatureBasedPlaneTracker();
 
   void setTemplate(const cv::Mat&, const cv::Rect&);
   Result track(const cv::Mat&);
+
+  inline const std::vector<cv::Point2f> getInliersPoints() const { return _inlier_points; }
 
  private:
   cv::Ptr<cv::Feature2D> _features;
@@ -58,6 +60,8 @@ class FeatureBasedPlaneTracker
   std::vector<cv::KeyPoint> _keypoints;
   cv::Mat _descriptors;
   cv::Rect _bbox;
+
+  std::vector<cv::Point2f> _inlier_points;
 }; // FeatureBasedPlaneTracker
 
 }; // bp

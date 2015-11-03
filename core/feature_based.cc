@@ -22,6 +22,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "bitplanes/core/feature_based.h"
+#include "bitplanes/core/debug.h"
 #include "bitplanes/utils/error.h"
 
 #include <iostream>
@@ -30,7 +31,7 @@ namespace bp {
 
 
 FeatureBasedPlaneTracker::
-FeatureBasedPlaneTracker(cv::Ptr<cv::Feature2D>& f, cv::Ptr<cv::DescriptorMatcher>& m, Config conf)
+FeatureBasedPlaneTracker(cv::Ptr<cv::Feature2D> f, cv::Ptr<cv::DescriptorMatcher> m, Config conf)
     : _features(f), _matcher(m), _config(conf) {}
 
 FeatureBasedPlaneTracker::~FeatureBasedPlaneTracker() {}
@@ -47,10 +48,12 @@ static inline cv::Mat make_mask(const cv::Size& image_size, const cv::Rect& bbox
 static inline
 void DetectFeatures(const cv::Mat& image, const cv::Rect& bbox,
                     cv::Ptr<cv::FeatureDetector>& detector,
-                    std::vector<cv::KeyPoint>& keypoints)
+                    std::vector<cv::KeyPoint>& keypoints,
+                    int num_keypoints = 2048)
 {
   detector->detect(image, keypoints, make_mask(image.size(), bbox));
   cv::KeyPointsFilter::removeDuplicated(keypoints);
+  cv::KeyPointsFilter::retainBest(keypoints, num_keypoints);
 
   /*
   auto criteria = cv::TermCriteria(cv::TermCriteria::EPS +
@@ -76,7 +79,7 @@ void FeatureBasedPlaneTracker::setTemplate(const cv::Mat& image, const cv::Rect&
                               _descriptors, false);
   _features->compute(image, _keypoints, _descriptors);*/
 
-  DetectFeatures(image, bbox, _features, _keypoints);
+  DetectFeatures(image, bbox, _features, _keypoints, _config.max_num_pts);
   _features->compute(image, _keypoints, _descriptors);
   _matcher->add(_descriptors);
 
@@ -103,32 +106,22 @@ static inline cv::Rect make_bigger_box(cv::Size image_size, cv::Rect src, int bu
 
 Result FeatureBasedPlaneTracker::track(const cv::Mat& image)
 {
+  Result ret;
+
   std::vector<cv::KeyPoint> keypoints;
   cv::Mat descriptors;
 
   auto bbox = make_bigger_box(image.size(), _bbox, 200);
-  //_features->detect(image, keypoints, make_mask(image.size(), bbox));
-  //cv::KeyPointsFilter::removeDuplicated(keypoints);
-  //cv::KeyPointsFilter::retainBest(keypoints, 0.8 * keypoints.size());
-  DetectFeatures(image, bbox, _features, keypoints);
-  _features->compute(image, keypoints, descriptors);
-
+  DetectFeatures(image, bbox, _features, keypoints, _config.max_num_pts);
+  if(keypoints.size() < 10)
   {
-    /*
-    cv::Mat D;
-    cv::drawKeypoints(image, keypoints, D);
-    cv::imshow("D", D);
-    printf("got %zu points\n", keypoints.size());
-    cv::waitKey(0);
-    cv::destroyWindow("D");
-    */
+    Warn("Failed no keypoints\n");
+    ret.successfull = false;
+    return ret;
   }
 
+  _features->compute(image, keypoints, descriptors);
 
-  /*
-  _features->detectAndCompute(image, make_mask(image.size(), bbox),
-                              keypoints, descriptors, false);
-                              */
 
   std::vector<cv::DMatch> matches;
   _matcher->match(descriptors, matches);
@@ -143,13 +136,27 @@ Result FeatureBasedPlaneTracker::track(const cv::Mat& image)
     x2.push_back(  keypoints[m.queryIdx].pt );
   }
 
-  cv::Mat H = cv::findHomography(x1, x2, cv::RANSAC, _config.ransac_reproj_threshold,
-                                 cv::noArray(), _config.ransac_max_iters);
+  cv::Mat mask;
+  cv::Mat H = cv::findHomography(x1, x2, cv::RHO, _config.ransac_reproj_threshold,
+                                 mask, _config.ransac_max_iters);
 
-  bp::Matrix33f H_ret;
-  cv::cv2eigen(H, H_ret);
+  bp::Matrix33f H_ret(bp::Matrix33f::Identity());
 
-  return Result(H_ret);
+  if(!H.empty())
+    cv::cv2eigen(H, H_ret);
+  else {
+    ret.successfull = false;
+    Warn("Failed\n");
+  }
+
+  _inlier_points.resize(0);
+  for(int i = 0; i < mask.rows; ++i) {
+    if(mask.at<uchar>(i))
+      _inlier_points.push_back( x2[i] );
+  }
+
+  ret.T = H_ret;
+  return ret;
 }
 
 } // bp

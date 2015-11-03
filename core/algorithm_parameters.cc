@@ -51,6 +51,7 @@ bool AlgorithmParameters::load(std::string filename)
     cf.get<std::string>("MultiChannelExtractorType", "BitPlanes"));
     linearizer = LinearizerTypeFromString(
         cf.get<std::string>("LinearizerType", "InverseCompositional"));
+    subsampling = cf.get<int>("Subsampling", 1);
 
   } catch(const std::exception& ex) {
     Warn("Failed to load config from '%s'\n", filename.c_str());
@@ -74,7 +75,8 @@ bool AlgorithmParameters::save(std::string filename)
         ("ParameterTolerance", parameter_tolerance).set
         ("FunctionTolerance", function_tolerance).set
         ("Sigma", sigma).set
-        ("Verbose", verbose);
+        ("Verbose", verbose).set
+        ("Subsampling", subsampling);
 
     cf.save(filename);
   } catch(const std::exception& ex) {
@@ -93,7 +95,8 @@ std::ostream& operator<<(std::ostream& os, const AlgorithmParameters& p)
   os << "FunctionTolerance = " << p.function_tolerance << "\n";
   os << "NumLevels = " << p.num_levels << "\n";
   os << "sigma = " << p.sigma << "\n";
-  os << "verbose = " << p.verbose;
+  os << "verbose = " << p.verbose << "\n";
+  os << "subsampling = " << p.subsampling;
   return os;
 }
 

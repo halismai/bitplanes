@@ -34,7 +34,7 @@ struct Error : public std::logic_error
 }; // Error
 
 #define THROW_ERROR(msg) \
-    throw Error(Format("[ %s:%04d ] %s", MYFILE, __LINE__, msg))
+    throw bp::Error(bp::Format("[ %s:%04d ] %s", MYFILE, __LINE__, msg))
 
 #define THROW_ERROR_IF(cond, msg) if( !!(cond) ) THROW_ERROR( (msg) )
 

@@ -33,7 +33,7 @@ static const std::array<cv::Rect,9> RECTS
   cv::Rect(219, 101, 674, 497)  // 9
 };
 
-static const double SCALE = 0.25;
+static const double SCALE = 0.125;
 
 static inline cv::Mat getScaledImage(const cv::Mat& I)
 {
@@ -86,13 +86,13 @@ static inline cv::Rect GetRectFromFilename(std::string name)
 static bp::AlgorithmParameters GetDefaultParams()
 {
   bp::AlgorithmParameters params;
-  params.num_levels = 2;
+  params.num_levels = 1;
   params.max_iterations = 50;
   params.parameter_tolerance = 5e-5;
   params.function_tolerance = 1e-4;
   params.verbose = false;
   params.sigma = 2.0;
-  params.subsampling = 2;
+  params.subsampling = 1;
   return params;
 }
 

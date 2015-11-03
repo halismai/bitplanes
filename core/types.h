@@ -107,6 +107,8 @@ struct Result
   /** estimated transform */
   Matrix33f T = Matrix33f::Identity();
 
+  bool successfull = true;
+
   friend std::ostream& operator<<(std::ostream&, const Result&);
 }; // Result
 
