@@ -18,7 +18,6 @@
 #include <Eigen/Core>
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/calib3d.hpp>
-#include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "bitplanes/core/feature_based.h"
@@ -83,6 +82,7 @@ void FeatureBasedPlaneTracker::setTemplate(const cv::Mat& image, const cv::Rect&
   _features->compute(image, _keypoints, _descriptors);
   _matcher->add(_descriptors);
 
+  /*
   {
     cv::Mat D;
     cv::drawKeypoints(image, _keypoints, D);
@@ -91,6 +91,7 @@ void FeatureBasedPlaneTracker::setTemplate(const cv::Mat& image, const cv::Rect&
     cv::waitKey(0);
     cv::destroyWindow("D");
   }
+  */
 }
 
 static inline cv::Rect make_bigger_box(cv::Size image_size, cv::Rect src, int buff)
@@ -137,7 +138,7 @@ Result FeatureBasedPlaneTracker::track(const cv::Mat& image)
   }
 
   cv::Mat mask;
-  cv::Mat H = cv::findHomography(x1, x2, cv::RHO, _config.ransac_reproj_threshold,
+  cv::Mat H = cv::findHomography(x1, x2, cv::RANSAC, _config.ransac_reproj_threshold,
                                  mask, _config.ransac_max_iters);
 
   bp::Matrix33f H_ret(bp::Matrix33f::Identity());
