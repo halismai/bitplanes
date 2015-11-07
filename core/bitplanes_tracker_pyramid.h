@@ -40,7 +40,8 @@ class BitPlanesTrackerPyramid
   BitPlanesTrackerPyramid(const AlgorithmParameters& p = AlgorithmParameters())
       : _alg_params(p)
   {
-    std::cout << _alg_params << std::endl;
+    if(_alg_params.verbose)
+      std::cout << "AlgorithmParameters:\n" << _alg_params << std::endl;
   }
 
   inline ~BitPlanesTrackerPyramid() {}
