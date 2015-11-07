@@ -46,35 +46,55 @@ class BitplanesTracker
   typedef typename MotionModelType::Gradient        Gradient;
   typedef typename MotionModelType::ParameterVector ParameterVector;
 
+  typedef typename Eigen::LDLT<Hessian> Solver;
+
   typedef BitPlanesChannelDataSubSampled<M> ChannelDataType;
 
  public:
+  /**
+   */
   BitplanesTracker(AlgorithmParameters p = AlgorithmParameters());
 
+  /**
+   * Sets the template
+   *
+   * \param image the template image (I_0)
+   * \param bbox  location of the template in image
+   */
   void setTemplate(const cv::Mat& image, const cv::Rect& bbox);
 
+  /**
+   * Tracks the template that was set during the call setTemplate
+   *
+   * \param image the input image (I_1)
+   * \param T_init initialization of the transform
+   */
   Result track(const cv::Mat& image, const Transform& T_init = Transform::Identity());
 
-  void getNormalization(const cv::Rect& roi, Transform& T, Transform& T_inv) const;
-
  protected:
-  AlgorithmParameters _alg_params;
-  ChannelDataType _cdata;
-  cv::Rect _bbox;
-  cv::Mat _I0, _I1;
-  cv::Mat _Iw;
-  //cv::Mat _interp_maps[2];
-  Matrix33f _T, _T_inv;
-  Gradient _gradient;
-  Vector_<float> _residuals;
-
-  Eigen::LDLT<Hessian> _ldlt;
-
+  /**
+   * Performs the linearization step, which is:
+   *  - warp the image
+   *  - re-compute the multi-channel descriptors
+   *  - compute the cost function gradient (J^T * error)
+   */
   float linearize(const cv::Mat&, const Transform& T_init);
 
+  /**
+   * applies smoothing to the image at the specified ROI
+   */
   void smoothImage(cv::Mat& I, const cv::Rect& roi);
 
-  int _interp;
+ protected:
+  AlgorithmParameters _alg_params; //< AlgorithmParameters
+  ChannelDataType _cdata;          //< holds the multi-channel data
+  cv::Rect _bbox;                  //< the template's bounding box
+  cv::Mat _I, _Iw;                 //< buffers for input image and warped image
+  Matrix33f _T, _T_inv;            //< normalization matrices
+  Gradient _gradient;              //< gradient of the cost function
+  Vector_<float> _residuals;       //< vector of residuals
+  Solver _solver;                  //< the linear solver
+  int _interp;                     //< interpolation, e.g. cv::INTER_LINEAR
 
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW;

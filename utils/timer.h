@@ -22,15 +22,34 @@
 
 namespace bp {
 
+/**
+ * Simple timer. The timer is enabled if BITPLANES_WITH_TIMING is enabled when
+ * compiling code.
+ */
 class Timer
 {
   typedef std::chrono::milliseconds Milliseconds;
 
  public:
+  /**
+   * By default the constructor start timing.
+   */
   inline Timer() { start(); }
 
+  /**
+   * Calling start again will reset the time
+   */
   void start();
+
+  /**
+   * Stops the timer. The start time point is reset
+   */
   Milliseconds stop();
+
+  /**
+   * Keeps the timer running and reports elapsed milliseconds since the last
+   * call to start() (or stop())
+   */
   Milliseconds elapsed();
 
  protected:
@@ -38,6 +57,16 @@ class Timer
 }; // Timer
 
 
+/**
+ * Times a piece of code by running N_rep and returns the average run time in
+ * milliseconds
+ *
+ * Example
+ *
+ * MyClass my_class;
+ * auto t = TimeCode(100, [=]() { my_class.runOperation(); });
+ * std::cout << "Time: " << t << " ms\n";
+ */
 template <class Func, class ...Args> static inline
 double TimeCode(int N_rep, Func&& f, Args... args)
 {

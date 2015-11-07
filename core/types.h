@@ -58,11 +58,9 @@ struct EigenStdVector
 {
   typedef Eigen::aligned_allocator<M> allocator;
   typedef std::vector<M, allocator>   type;
-  //typedef std::vector<M>   type;
 }; // EigenStdVector
 
-
-typedef typename EigenStdVector<Vector3f>::type PointVector;
+typedef typename EigenStdVector<Vector3f>::type       PointVector;
 typedef typename EigenStdVector<Vector_<float>>::type ResidualsVector;
 
 enum class OptimizerStatus

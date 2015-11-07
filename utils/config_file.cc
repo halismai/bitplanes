@@ -96,7 +96,8 @@ std::ostream& operator<<(std::ostream& os, const ConfigFile& cf)
 bool ConfigFile::save(std::string filename) const
 {
   std::ofstream ofs(filename);
-  ofs << *this;
+  if(ofs.is_open())
+    ofs << *this;
   return !ofs.bad();
 }
 

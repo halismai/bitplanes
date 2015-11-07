@@ -78,13 +78,13 @@ struct AlgorithmParameters
    * parameter tolerance. If the relative magnitude of parameters falls belows
    * this we converge
    */
-  float parameter_tolerance = 1e-6;
+  float parameter_tolerance = 5e-6;
 
   /**
    * function value tolerance. If the the relative function value falls below
    * this, we converge
    */
-  float function_tolerance = 1e-6;
+  float function_tolerance = 5e-5;
 
   /**
    * std. deviation of an isotropic Gaussian to pre-smooth images prior to
@@ -98,17 +98,29 @@ struct AlgorithmParameters
   bool verbose = true;
 
   /**
+   * Process the template by skipping every nth pixel.
+   *
+   * For example,
+   * if 'subsampling' == 2, then we process the template by every other pixel
+   * If 'subsampling' == 1, then all pixels will be processed
+   *
    */
   int subsampling = 1;
 
   /**
    * Multi-channel function to use
+   *
+   * Currently, this is the only one supported. NOTE: other channels have been
+   * removed to focus on BitPlanes for iOS
    */
   MultiChannelExtractorType multi_channel_function =
       MultiChannelExtractorType::BitPlanes;
 
   /**
    * linearization algorithm
+   *
+   * NOTE: this is the only linearizer supported. In the future, we will add
+   * more linearizers (e.g. ForwardCompositional, and ESM)
    */
   LinearizerType linearizer = LinearizerType::InverseCompositional;
 

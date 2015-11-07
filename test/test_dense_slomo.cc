@@ -87,7 +87,6 @@ void Run(bp::SloMoDataLoader& data_loader, bp::AlgorithmParameters params, std::
   {
     bp::Timer timer;
     auto result = tracker.track(gray_image, H_init);
-    //total_time += result.time_ms / 1000.0;
     total_time += timer.stop().count() / 1000.0;
     ++num_frames;
 

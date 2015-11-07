@@ -36,6 +36,30 @@ namespace bp {
  *   VarName = Value
  *
  * Lines that begin with a '#' or '%' are treated as comments
+ *
+ * Example usage
+ *
+ *    ConfigFile cf("myfile.cfg");
+ *
+ *    // get a variable with a default value if it does not exist in myfile.cfg
+ *    auto v = cf.get<std::string>("MyVariable", "default");
+ *
+ *    // this will throw an error if the variable does not exist
+ *    try {
+ *      auto required_var = cf.get<int>("VariableName");
+ *    } catch(const std::exception& ex) {
+ *      std::cerr << "value 'VariableName' is required\n";
+ *    }
+ *
+ *    // We can also print the contents of the ConfigFile
+ *    std::cout << cf << std::endl;
+ *
+ *    // or add new values
+ *    cf.set<double>("MyNewVariable", 1.618);
+ *
+ *    // and write it to disk
+ *    cf.save("newfile.cfg");
+ *
  */
 class ConfigFile
 {
@@ -43,21 +67,64 @@ class ConfigFile
   typedef SharedPointer<ConfigFile> Pointer;
 
  public:
+  /**
+   * default constructor, does not do anything
+   */
   ConfigFile();
+
+  /**
+   * Loads a config file from 'filename'.
+   *
+   * \throw Error if filename does not exist
+   */
   ConfigFile(std::string filename);
+
+  /**
+   * Loads the config from an opened ifstream
+   * \throw Error if 'ifs' is not open
+   */
   ConfigFile(std::ifstream& ifs);
 
+  /**
+   * Writes the contents of the file to disk
+   *
+   * \param filename output filename
+   * \return true if successfull
+   */
   bool save(std::string filename) const;
 
+  /**
+   * Get the value named 'var_name'
+   *
+   * \throw Error if 'var_name' does not exist, or conversion to the required
+   * type 'T' fails
+   */
   template <typename T> inline
   T get(std::string var_name) const;
 
+  /**
+   * Get the value name 'var_name'
+   *
+   * If any error occurs (e.g. var_name does not exist) the function will
+   * silently return the supplied 'default_val'
+   */
   template <typename T> inline
   T get(std::string var_name, const T& default_val) const;
 
+  /**
+   * Sets 'var_name' to the specified value
+   */
   template <typename T> inline
   ConfigFile& set(std::string var_name, const T& value);
 
+  /**
+   * sets values with method chaining. For example,
+   *
+   * ConfigFile cf;
+   * cf("SpeedOfLight", "299792458.0")
+   *   ("PI",           "3.14159265359")
+   *   ("PHI",          "1.618033988749895").save("my_awesome_config.cfg");
+   */
   ConfigFile& operator()(const std::string&, const std::string&);
 
   friend std::ostream& operator<<(std::ostream&, const ConfigFile&);

@@ -21,6 +21,10 @@
 #include <string>
 
 namespace bp {
+
+/**
+ * filesystem utilities for posix systems, tested with Linux
+ */
 namespace fs {
 
 /**
@@ -32,7 +36,6 @@ std::string dirsep(std::string fn);
  * Expands '~' to user's home directory
  */
 std::string expand_tilde(std::string);
-
 
 /**
  * \return the extension of the input filename

@@ -39,26 +39,26 @@ BitplanesTracker<M>::BitplanesTracker(AlgorithmParameters p)
 template <class M>
 void BitplanesTracker<M>::setTemplate(const cv::Mat& image, const cv::Rect& bbox)
 {
-  image.copyTo(_I0);
-  smoothImage(_I0, bbox);
+  image.copyTo(_I);
+  smoothImage(_I, bbox);
 
   _cdata.getCoordinateNormalization(bbox, _T, _T_inv);
   _bbox = bbox;
-  _cdata.set(_I0, bbox, _T(0,0), _T_inv(0,2), _T_inv(1,2));
+  _cdata.set(_I, bbox, _T(0,0), _T_inv(0,2), _T_inv(1,2));
 
-  _ldlt.compute(-_cdata.hessian());
+  _solver.compute(-_cdata.hessian());
 }
 
 template <class M>
 Result BitplanesTracker<M>::track(const cv::Mat& image, const Transform& T_init)
 {
-  image.copyTo(_I1);
-  smoothImage(_I1, _bbox);
+  image.copyTo(_I);
+  smoothImage(_I, _bbox);
 
   Result ret(T_init);
   Timer timer;
 
-  auto g_norm = this->linearize(_I1, ret.T);
+  auto g_norm = this->linearize(_I, ret.T);
   const auto p_tol = this->_alg_params.parameter_tolerance,
         f_tol = this->_alg_params.function_tolerance,
         sqrt_eps = std::sqrt(std::numeric_limits<float>::epsilon()),
@@ -67,8 +67,11 @@ Result BitplanesTracker<M>::track(const cv::Mat& image, const Transform& T_init)
   const auto max_iters = this->_alg_params.max_iterations;
   const auto verbose = this->_alg_params.verbose;
 
-  if(verbose)
-    printf("\t%3d/%d F=Inf g=%g\n", 1, max_iters, g_norm);
+  if(verbose) {
+    printf("\n                                        First-Order         Norm of \n"
+           " Iteration  Func-count    Residual       optimality            step\n");
+    printf(" %5d       %5d   %13.6g    %12.3g\n", 0, 1, _residuals.squaredNorm(), g_norm);
+  }
 
   if(g_norm < tol_opt*rel_factor) {
     if(verbose)
@@ -87,16 +90,16 @@ Result BitplanesTracker<M>::track(const cv::Mat& image, const Transform& T_init)
   int it = 1;
   while(!has_converged && it++ < max_iters)
   {
-    //const ParameterVector dp = MotionModelType::Solve(_cdata.hessian(), _gradient);
-    const ParameterVector dp = _ldlt.solve(_gradient);
+    const ParameterVector dp = _solver.solve(_gradient);
     const auto sum_sq = _residuals.squaredNorm();
     {
       const auto dp_norm = dp.norm();
       const auto p_norm = MotionModelType::MatrixToParams(ret.T).norm();
 
-      if(verbose)
-        printf("\t%3d/%d F=%g g=%g |dp|=%0.2e\n",
-               it, max_iters, sum_sq, g_norm, dp_norm);
+      if(verbose) {
+        printf(" %5d       %5d   %13.6g    %12.3g    %12.6g\n",
+               it, 1 + it, sum_sq, g_norm, dp_norm);
+      }
 
       has_converged = TestConverged(dp_norm, p_norm, p_tol,
                                     g_norm, tol_opt, rel_factor,
@@ -110,17 +113,24 @@ Result BitplanesTracker<M>::track(const cv::Mat& image, const Transform& T_init)
     ret.T = Td * ret.T;
 
     if(!has_converged) {
-      g_norm = this->linearize(_I1, ret.T);
+      g_norm = this->linearize(_I, ret.T);
     }
-
   }
 
   ret.time_ms = timer.stop().count();
   ret.num_iterations = it;
   ret.final_ssd_error = old_sum_sq;
   ret.first_order_optimality = g_norm;
-  if(ret.status == OptimizerStatus::NotStarted)
+  if(ret.status == OptimizerStatus::NotStarted) {
     ret.status = OptimizerStatus::MaxIterations;
+    if(verbose) {
+      std::cout << "Max iterations reached\n";
+    }
+  }
+
+  if(verbose) {
+    printf("\n\n");
+  }
 
   return ret;
 }
@@ -128,7 +138,6 @@ Result BitplanesTracker<M>::track(const cv::Mat& image, const Transform& T_init)
 template <class M> inline
 float BitplanesTracker<M>::linearize(const cv::Mat& I, const Transform& T)
 {
-  //imwarp<M>(I, _Iw, T, _bbox, _interp_maps[0], _interp_maps[1], _interp, 0.f);
   _cdata.warpImage(I, T, _bbox, _Iw, _interp, 0.0f);
   _cdata.computeResiduals(_Iw, _residuals);
 
