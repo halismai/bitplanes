@@ -45,19 +45,17 @@ set(BITPLANES_VERSION_PATCH "0")
 execute_process(COMMAND date OUTPUT_VARIABLE build_date OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(BITPLANES_BUILD_DATE "${build_date}")
 
-#find_package(PkgConfig REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -fstrict-aliasing")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=auto")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
 
 option(BUILD_STATIC            "Build a static library instead of shared" ON)
 option(BITPLANES_WITH_OPENMP   "Enable openmp"                            ON)
 option(BITPLANES_WITH_PROFILER "Use google profiler"                      OFF)
 option(BITPLANES_WITH_TCMALLOC "Use google tcmalloc"                      OFF)
-option(BITPLANES_WITH_TBB      "Use Intel TBB"                            OFF)
+option(BITPLANES_WITH_TBB      "Use Intel TBB"                            ON)
 option(BITPLANES_WITH_TIMING   "Enabling timing the code"                 ON)
 option(BITPLANES_WITH_BOOST    "Enable boost"                            OFF)
 
@@ -100,14 +98,14 @@ else()
 endif()
 
 if(BITPLANES_WITH_OPENMP)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp -lpthread")
+  find_package(OpenMP)
+  if(OPENMP_FOUND)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  endif()
 endif()
-
 
 configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
   "${PROJECT_SOURCE_DIR}/core/config.h")
-
 
 #
 # REQUIRED libraries
@@ -189,6 +187,7 @@ list(APPEND MY_INCLUDE_DIRS "${P_DIR}")
 add_definitions(${MY_DEFINES})
 add_definitions(-D_DEBUG_)
 include_directories(${MY_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 link_directories(${MY_LINK_DIRS})
 
 add_subdirectory(utils)
