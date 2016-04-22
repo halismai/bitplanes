@@ -45,6 +45,15 @@
 #cmakedefine01 BITPLANES_HAVE_AVX2
 #cmakedefine01 BITPLANES_HAVE_POPCNT
 
+#cmakedefine01 USE_SSE2
+#cmakedefine01 USE_SSE3
+#cmakedefine01 USE_SSE4_1
+#cmakedefine01 USE_SSE4_2
+#cmakedefine01 USE_SSE4a
+#cmakedefine01 USE_AVX
+#cmakedefine01 USE_FMA4
+
 #include <bitplanes/core/debug.h>
 
 #endif // BITPLANES_CONFIG_H
+

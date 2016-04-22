@@ -15,7 +15,9 @@
 ##  along with bitplanes.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+
+project(bitplanes CXX)
 
 set(BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
@@ -29,27 +31,34 @@ message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory")
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Config" FORCE)
 
-project(bitplanes CXX)
 
-include(cmake/CheckC++11.cmake)
-CheckCpp11()
+#if(NOT IOS)
+#  include(cmake/ConfigureSSE.cmake)
+#endif()
+include(cmake/MakeVersion.cmake)
+MakeVersion(BITPLANES 1 8 0)
 
-if(NOT IOS)
-  include(cmake/ConfigureSSE.cmake)
-endif()
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "BitPlanes")
+set(CPACK_PACKAGE_VENDOR              "halismai")
+set(CPACK_PACKAGE_CONTACT             "halismai@cs.cmu.edu")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README")
+set(CPACK_RESOURCE_FILE_LICENSE    "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_SOURCE_GENERATOR "TBZ2")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${BITPLANES_VERSION}")
 
-set(BITPLANES_VERSION_MAJOR "1")
-set(BITPLANES_VERSION_MINOR "5")
-set(BITPLANES_VERSION_PATCH "0")
+set(CPACK_SOURCE_IGNORE_FILES
+  ${CPACK_SOURCE_IGNORE_FILES}
+  "/build/"
+  "/.hg/"
+  "/.git/"
+  "/*.swp"
+  "${PROJECT_SOURCE_DIR}/.hgignore"
+  "${PROJECT_SOURCE_DIR}/.gitignore")
 
-execute_process(COMMAND date OUTPUT_VARIABLE build_date OUTPUT_STRIP_TRAILING_WHITESPACE)
-set(BITPLANES_BUILD_DATE "${build_date}")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -fstrict-aliasing")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=auto")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
+include(CPack)
+add_custom_target(srcdist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
+message(STATUS "dist file: ${CPACK_SOURCE_PACKAGE_FILE_NAME}")
+message(STATUS "version  : ${BITPLANES_VERSION}")
 
 option(BUILD_STATIC            "Build a static library instead of shared" ON)
 option(BITPLANES_WITH_OPENMP   "Enable openmp"                            ON)
@@ -59,13 +68,13 @@ option(BITPLANES_WITH_TBB      "Use Intel TBB"                            ON)
 option(BITPLANES_WITH_TIMING   "Enabling timing the code"                 ON)
 option(BITPLANES_WITH_BOOST    "Enable boost"                            OFF)
 
-if(BUILD_STATIC)
-  set(LIBRARY_TYPE STATIC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-else()
-  set(LIBRARY_TYPE SHARED)
-endif()
+option(ENABLE_PROFILING           "enable profiling"  OFF)
+option(ENABLE_FAST_MATH           "enable fast math"  OFF)
+option(ENABLE_OMIT_FRAME_POINTER  "omit frame pointer" ON)
 
+
+
+# IOS does not have many of the packages, unset them
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   message(STATUS "Building for: ${CMAKE_SYSTEM_NAME}")
   unset(BITPLANES_WITH_OPENMP     CACHE)
@@ -97,25 +106,31 @@ else()
   set(BITPLANES_HAVE_ARM 0)
 endif()
 
-if(BITPLANES_WITH_OPENMP)
-  find_package(OpenMP)
-  if(OPENMP_FOUND)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  endif()
-endif()
+
+include(cmake/SetCompilerOptions.cmake)
 
 configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
   "${PROJECT_SOURCE_DIR}/core/config.h")
 
+
+if(BITPLANES_WITH_OPENMP)
+  find_package(OpenMP)
+  if(OPENMP_FOUND)
+    addExtraCompilerOptions(${OpenMP_CXX_FLAGS})
+    add_definitions(-DBITPLANES_WITH_OPENMP)
+  endif()
+endif()
+
+
 #
 # REQUIRED libraries
 #
+set(OpenCV_DIR "/opt/opencv3/share/OpenCV/")
 find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui imgcodecs features2d calib3d)
 list(APPEND MY_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS})
 list(APPEND MY_LINK_DIRS    ${OpenCV_LINK_DIRECTORIES})
 list(APPEND MY_LIBRARIES    ${OpenCV_LIBS})
 
-#pkg_check_modules(Eigen REQUIRED eigen3)
 find_package(Eigen REQUIRED)
 if(EIGEN_VERSION VERSION_LESS 3.2.0)
   message(FATAL_ERROR "bitplanes requires Eigen version >= 3.2.0")
@@ -187,8 +202,6 @@ list(APPEND MY_INCLUDE_DIRS "${P_DIR}")
 add_definitions(${MY_DEFINES})
 add_definitions(-D_DEBUG_)
 include_directories(${MY_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(../${CMAKE_CURRENT_SOURCE_DIR})
 link_directories(${MY_LINK_DIRS})
 
 add_subdirectory(utils)
@@ -197,4 +210,5 @@ add_subdirectory(core)
 if(NOT IOS)
   add_subdirectory(test)
 endif()
+
 

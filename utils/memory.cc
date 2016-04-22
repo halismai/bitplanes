@@ -34,6 +34,11 @@ static inline void throw_bad_alloc()
 #endif
 }
 
+static inline bool is_non_negative_and_power_of_2(int n)
+{
+  return n && !(n & (n - 1));
+}
+
 static inline void* _aligned_malloc(size_t nbytes, int alignment)
 {
   assert( is_non_negative_and_power_of_2(alignment) );
