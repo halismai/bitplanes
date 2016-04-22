@@ -169,6 +169,14 @@ ConfigFile& ConfigFile::set(std::string name, const T& value)
   return *this;
 }
 
+template<> inline
+ConfigFile& ConfigFile::set(std::string name, const bool& value)
+{
+  _data[name] = std::to_string(static_cast<int>(value));
+  return *this;
+}
+
+
 }; // bp
 
 #endif // TT_UTIL_CONFIG_FILE_H
