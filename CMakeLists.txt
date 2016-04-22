@@ -1,4 +1,4 @@
-##
+## TODO check version
 ##  This file is part of bitplanes.
 ##
 ##  bitplanes is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(bitplanes CXX)
+project(bitplanes C CXX)
 
 set(BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
@@ -116,7 +116,7 @@ configure_file("${PROJECT_SOURCE_DIR}/bitplanes_config.h.in"
 if(BITPLANES_WITH_OPENMP)
   find_package(OpenMP)
   if(OPENMP_FOUND)
-    addExtraCompilerOptions(${OpenMP_CXX_FLAGS})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     add_definitions(-DBITPLANES_WITH_OPENMP)
   endif()
 endif()
@@ -125,7 +125,9 @@ endif()
 #
 # REQUIRED libraries
 #
+# we need opencv3! TODO check version
 set(OpenCV_DIR "/opt/opencv3/share/OpenCV/")
+
 find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui imgcodecs features2d calib3d)
 list(APPEND MY_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS})
 list(APPEND MY_LINK_DIRS    ${OpenCV_LINK_DIRECTORIES})
