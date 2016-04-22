@@ -188,6 +188,7 @@ add_definitions(${MY_DEFINES})
 add_definitions(-D_DEBUG_)
 include_directories(${MY_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(../${CMAKE_CURRENT_SOURCE_DIR})
 link_directories(${MY_LINK_DIRS})
 
 add_subdirectory(utils)
