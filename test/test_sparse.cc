@@ -1,3 +1,4 @@
+#include <bitplanes/core/config.h>
 #include <bitplanes/core/internal/bitplanes_sparse_data.h>
 #include <bitplanes/core/homography.h>
 #include <bitplanes/core/bitplanes_tracker_sparse.h>
