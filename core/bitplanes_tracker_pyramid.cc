@@ -103,3 +103,4 @@ Result BitPlanesTrackerPyramid<M>::track(const cv::Mat& I, const Transform& T_in
 template class BitPlanesTrackerPyramid<Homography>;
 
 }; // bp
+

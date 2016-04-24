@@ -38,6 +38,7 @@ class BitPlanesChannelData
   typedef typename MotionModelType::JacobianMatrix  JacobianMatrix;
   typedef typename MotionModelType::Transform       Transform;
   typedef typename MotionModelType::Hessian         Hessian;
+  typedef typename MotionModelType::Gradient        Gradient;
 
  public:
   /**
@@ -50,7 +51,6 @@ class BitPlanesChannelData
   template <class ... Args> inline
   void set(const cv::Mat& image, const cv::Rect& roi, Args&...args)
   {
-    printf("calling set\n");
     return derived()->set(image, roi, args...);
   }
 

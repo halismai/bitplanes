@@ -62,6 +62,8 @@ void Run(bp::SloMoDataLoader& data_loader, bp::AlgorithmParameters params, std::
                  "failed to get first frame");
   cv::Rect original_roi = data_loader.getOriginalRoi();
 
+  std::cout << "ROI: " << data_loader.getTemplateRoi() << std::endl;
+
   tracker.setTemplate(gray_image, data_loader.getTemplateRoi());
 
   cv::VideoWriter video_writer;

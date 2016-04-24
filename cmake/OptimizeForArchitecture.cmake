@@ -47,6 +47,7 @@
 get_filename_component(_currentDir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 include("${_currentDir}/AddCompilerFlag.cmake")
 include(CheckIncludeFile)
+include(CheckIncludeFileCXX)
 
 macro(_my_find _list _value _ret)
    list(FIND ${_list} "${_value}" _found)
@@ -519,7 +520,7 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
                string(REPLACE "." "_" _resultVar "${_resultVar}")
                if(_header)
                  message(STATUS "checking for ${_header} with flag ${_flag}")
-                  CHECK_INCLUDE_FILE("${_header}" "${_resultVar}" "-m${_flag}")
+                 CHECK_INCLUDE_FILE_CXX("${_header}" "${_resultVar}" "-m${_flag}")
                   if(NOT ${_resultVar})
                      set(_useVar "USE_${_flag}")
                      string(TOUPPER "${_useVar}" _useVar)

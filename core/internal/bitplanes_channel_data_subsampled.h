@@ -41,11 +41,12 @@ class BitPlanesChannelDataSubSampled :
   typedef typename Base::JacobianMatrix JacobianMatrix;
   typedef typename Base::Hessian Hessian;
   typedef typename Base::Transform Transform;
+  typedef typename Base::Gradient Gradient;
 
  public:
   /**
    * \param s subsampling/decimation factor. A value of 1 means no decimation, a
-   * value of 2 means decimate by half, and so own
+   * value of 2 means decimate by half, and so on
    */
   inline BitPlanesChannelDataSubSampled(size_t s = 1)
       : Base(), _sub_sampling(s) {}
@@ -54,6 +55,8 @@ class BitPlanesChannelDataSubSampled :
            float c1 = 0, float c2 = 0);
 
   void computeResiduals(const cv::Mat& Iw, Residuals& residuals) const;
+
+  float doLinearize(const cv::Mat& Iw, Gradient&) const;
 
   void warpImage(const cv::Mat& src, const Transform& T, const cv::Rect& roi,
                  cv::Mat& dst, int interp = cv::INTER_LINEAR, float border = 0.0f);

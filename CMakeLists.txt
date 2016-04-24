@@ -35,11 +35,12 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Config" FORCE)
 #if(NOT IOS)
 #  include(cmake/ConfigureSSE.cmake)
 #endif()
+
 include(cmake/MakeVersion.cmake)
 MakeVersion(BITPLANES 1 8 0)
 
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "BitPlanes")
-set(CPACK_PACKAGE_VENDOR              "halismai")
+set(CPACK_PACKAGE_VENDOR              "halismai Carnegie Mellon University")
 set(CPACK_PACKAGE_CONTACT             "halismai@cs.cmu.edu")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README")
 set(CPACK_RESOURCE_FILE_LICENSE    "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
@@ -71,7 +72,6 @@ option(BITPLANES_WITH_BOOST    "Enable boost"                            OFF)
 option(ENABLE_PROFILING           "enable profiling"  OFF)
 option(ENABLE_FAST_MATH           "enable fast math"  OFF)
 option(ENABLE_OMIT_FRAME_POINTER  "omit frame pointer" ON)
-
 
 
 # IOS does not have many of the packages, unset them

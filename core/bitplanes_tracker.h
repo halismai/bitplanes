@@ -39,8 +39,8 @@ template <class M>
 class BitplanesTracker
 {
  public:
-  typedef Matrix33f Transform;
-  typedef MotionModel<M> MotionModelType;
+  typedef Matrix33f       Transform;
+  typedef MotionModel<M>  MotionModelType;
 
   typedef typename MotionModelType::Hessian         Hessian;
   typedef typename MotionModelType::Gradient        Gradient;
