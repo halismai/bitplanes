@@ -78,7 +78,6 @@ void Run(bp::SloMoDataLoader& data_loader, bp::AlgorithmParameters params, std::
     }
   }
 
-
   bp::Matrix33f H_init(bp::Matrix33f::Identity());
 
   char text_buf[64];
