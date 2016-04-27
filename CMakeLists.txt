@@ -213,4 +213,5 @@ if(NOT IOS)
   add_subdirectory(test)
 endif()
 
+add_subdirectory(demo_cv)
 
