@@ -211,7 +211,7 @@ add_subdirectory(core)
 
 if(NOT IOS)
   add_subdirectory(test)
+  #add_subdirectory(demo_cv)
 endif()
 
-add_subdirectory(demo_cv)
 
