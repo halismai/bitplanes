@@ -95,9 +95,20 @@ void Run(bp::SloMoDataLoader& data_loader, bp::AlgorithmParameters params, std::
 
     auto H_scaled = bp::Homography::Scale(result.T, 1.0/data_loader.getScale());
     bp::DrawTrackingResult(dimg, original_image, original_roi, H_scaled.data());
+
+    /*
+    {
+      char fn[512];
+      snprintf(fn, 512, "frame_%06d.png", num_frames);
+      cv::imwrite(fn, dimg);
+    }
+    */
+
+    /*
     snprintf(text_buf, 64, "Frame %05d @ %3.2f Hz", num_frames, num_frames/total_time);
     cv::putText(dimg, text_buf, cv::Point(10,40), cv::FONT_HERSHEY_SIMPLEX, 0.7,
                 gFontColor, 2, cv::LINE_AA);
+                */
 
     cv::imshow("result", dimg);
 

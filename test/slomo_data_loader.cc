@@ -73,7 +73,6 @@ bool SloMoDataLoader::getFrame(cv::Mat& gray, cv::Mat& original)
     original = cv::Mat();
   }
 
-
   return !gray.empty();
 }
 

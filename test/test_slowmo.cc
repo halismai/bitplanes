@@ -33,7 +33,7 @@ static const std::array<cv::Rect,9> RECTS
   cv::Rect(219, 101, 674, 497)  // 9
 };
 
-static const double SCALE = 0.125;
+static const double SCALE = 0.25;
 
 static inline cv::Mat getScaledImage(const cv::Mat& I)
 {

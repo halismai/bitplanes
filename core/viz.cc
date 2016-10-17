@@ -78,7 +78,8 @@ cv::Scalar ToOpenCV(bp::ColorByName clr, int alpha = 128)
       break;
 
     case bp::ColorByName::Yellow:
-      ret = cv::Scalar(0, 255, 255, alpha);
+      //ret = cv::Scalar(0, 255, 255, alpha);
+      ret = cv::Scalar(0, 217, 255, alpha);
   }
 
   return ret;
